@@ -21,7 +21,6 @@ for ( qw(install remove update) )
 {
     event_link("yum-action", "yum-$_", "20");
     event_link("initialize-default-databases", "yum-$_", "50");
-    event_link("navigation-conf", "yum-$_", "80");
 }
 
 for ( qw(install remove update modify) )
@@ -34,12 +33,6 @@ for ( qw(bootstrap-console-save yum-update) )
     event_link("yum-import-keys", $_, "10");
 }
 
-safe_symlink("once", "root/etc/e-smith/events/local/services2adjust/yum");
-
-#--------------------------------------------------
-# functions for manager panel
-#--------------------------------------------------
-panel_link("nethupdate", "manager");
 
 #--------------------------------------------------
 # nethupdate
