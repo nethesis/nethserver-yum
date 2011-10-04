@@ -1,0 +1,4 @@
+{
+    my $nethupdate = $DB->get('nethupdate') or die;
+    $nethupdate->delete_prop('ReleaseVer');
+}

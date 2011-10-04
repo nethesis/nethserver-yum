@@ -1,0 +1,81 @@
+#!/usr/bin/perl -w
+#----------------------------------------------------------------------
+# Yum import keys
+# Copyright (C) 2005 Gordon Rowell <gordonr@gormand.com.au>
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License or more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+#----------------------------------------------------------------------
+
+use strict;
+use warnings;
+
+use constant KEYDIR => "/usr/share/rpm-gpg-keys";
+
+sub parse_key {
+	my @lines = @_;
+	my ($key, $good);
+
+	$good = 0;
+	foreach (@lines) {
+		chomp;
+		next if m#Version:#i;
+
+		if (m#BEGIN PGP PUBLIC KEY BLOCK#) {
+			$good++;
+			next;
+		}
+
+		if (m#END PGP PUBLIC KEY BLOCK#) {
+			$key .= $1 if (m/^(.+)-----END PGP PUBLIC KEY BLOCK/);
+			return $key;
+		}
+
+
+		$key .= $_ if m#^\S+$# && $good;
+	}
+	return undef;
+}
+
+my %keys;
+
+if(open (RPMS, '/bin/rpm -q gpg-pubkey 2> /dev/null|')) {
+	foreach my $rpm (map { chomp; $_ } <RPMS>) {
+		if(open (KEY, "/bin/rpm -q --qf \%{DESCRIPTION} $rpm|")) {
+			my $key = parse_key(<KEY>);
+			$keys{$key}++ if $key;
+			close(KEY);
+		}
+	}
+	close (RPMS);
+}
+
+chdir KEYDIR or die "Couldn't chdir " . KEYDIR . "\n";
+
+opendir DIR, '.' or die "Couldn't opendir .\n";
+
+for my $file ( grep { m#^RPM-GPG-KEY# } readdir(DIR) )
+{
+    if(open(KEY, "$file")) {
+		my $key = parse_key(<KEY>);
+		next if $key && $keys{$key};
+    }
+
+    warn "Importing key $file\n";
+
+    system("rpm", "--import", $file) == 0 or 
+	warn "Couldn't rpm --import $file\n";
+}
+
+exit 0;

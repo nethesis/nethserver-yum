@@ -1,0 +1,14 @@
+{
+    return "\n# yum check for updates is disabled\n";
+    return "\n# yum check for updates is disabled\n" unless $yum{status} eq 'enabled';
+
+    my $freq = $yum{check4updates} || 'daily';
+
+    if ($freq eq 'weekly') {
+        return "\n22 4 * * 0 root /sbin/e-smith/check4updates -m\n";
+    } elsif ($freq eq 'monthly') {
+        return "\n42 4 1 * * root /sbin/e-smith/check4updates -m\n";
+    } else {
+        return "\n02 4 * * * root /sbin/e-smith/check4updates -m\n"
+    }
+}

@@ -1,0 +1,266 @@
+#!/usr/bin/perl -wT
+# vim: ft=xml:
+
+#----------------------------------------------------------------------
+# heading     : Configuration
+# description : Software installer
+# navigation  : 4000 4200
+#
+# copyright (C) 1999-2005 Mitel Networks Corporation
+# copyright (C) 2004 Shad L. Lords <slords@mail.com>
+# copyright (C) 2005-2006 Gordon Rowell <gordonr@gormand.com.au>
+# Copyright (c) 2003-2004 Darrell May <dmay@myezserver.com>
+# 
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+# 
+# Technical support for this program is available from Mitel Networks 
+# Please visit our web site www.mitel.com/sme/ for details.
+#----------------------------------------------------------------------
+
+use strict;
+use esmith::TestUtils;
+use esmith::FormMagick::Panel::yum;
+my $f = esmith::FormMagick::Panel::yum->new();
+
+if (-e "/var/run/yum.pid")
+{
+    $f->print_yum_status_page();
+    exit(0);
+}
+
+if ($f->get_prop('yum', 'LogFile'))
+{
+    $f->skip_to_postupgrade();
+}
+
+$f->display();
+
+=head1 TESTING
+
+=begin testing
+
+=end testing
+
+=cut
+
+__DATA__
+<form
+    title="Software installer"
+    header="/etc/e-smith/web/common/head.tmpl"
+    footer="/etc/e-smith/web/common/foot.tmpl">
+
+    <page name="First" pre-event="print_status_message()">
+
+        <field
+            type="literal"
+            id="updates_installed"
+	    display="is_empty('updates')"
+            value="">
+            <description>DESC_UPTODATE</description>
+        </field>
+
+        <field
+            type="literal"
+            id="updates_available"
+	    display="non_empty('updates')"
+            value="">
+            <description>DESC_UPDATES_AVAILABLE</description>
+        </field>
+
+        <field
+            type="literal"
+            id="button_install_updates"
+	    display="non_empty('updates')"
+            value="">
+            <description>DESC_BUTTON_INSTALL_UPDATES</description>
+        </field>
+
+        <field
+            type="literal"
+            id="button_install_available"
+	    display="non_empty('available')"
+            value="">
+            <description>DESC_BUTTON_INSTALL_AVAILABLE</description>
+        </field>
+
+        <field
+            type="literal"
+            id="button_remove"
+	    display="non_empty('installed')"
+            value="">
+            <description>DESC_BUTTON_REMOVE</description>
+        </field>
+
+        <field
+            type="literal"
+            id="config_section_bar"
+            value="">
+            <description>DESC_SECTIONBAR</description>
+	</field>
+
+        <field 
+            type="literal" 
+            id="state_yum" 
+            value="get_status('status', 'localise')">
+            <label>LABEL_YUM_STATUS</label>
+        </field>
+
+        <field
+            type="literal"
+            id="state_packagefunctions"
+            value="get_status('PackageFunctions', 'localise')">
+            <label>LABEL_YUM_PACKAGEFUNCTIONS</label>
+        </field>
+
+        <field
+            type="literal"
+            id="button_configuration"
+            value="">
+            <description>DESC_BUTTON_CONFIGURATION</description>
+        </field>
+
+    </page>
+
+    <page name="YUM_PAGE_INSTALL_UPDATES" 
+	pre-event="turn_off_buttons"
+	post-event="do_yum('update')">
+
+        <field
+            type="select" multiple="1"
+            id="SelectedPackages"
+            value="get_names('updates','package')"
+            options="get_options('updates','package')">
+            <label>LABEL_AVAILABLE_UPDATES</label>
+            <description>DESC_AVAILABLE_UPDATES</description>
+        </field>
+
+        <subroutine src="print_skip_header()" />
+
+        <subroutine src="print_button('INSTALL_UPDATES')" />
+    </page>
+
+    <page name="YUM_PAGE_INSTALL_AVAILABLE" 
+	pre-event="turn_off_buttons"
+	post-event="do_yum('install')">
+
+	<field
+	    type="literal">
+	    <description>HEADER_AVAILABLE_SOFTWARE</description>
+	</field>
+
+        <field
+            type="select" multiple="1"
+            id="SelectedGroups"
+	    display="non_empty('available','group')"
+            options="get_options('available','group')">
+            <label>LABEL_AVAILABLE_GROUPS</label>
+            <description>DESC_AVAILABLE_GROUPS</description>
+        </field>
+
+        <field
+            type="select" multiple="1"
+            id="SelectedPackages"
+	    display="non_empty('available','packages')"
+            options="get_options('available','package')">
+            <label>LABEL_AVAILABLE_PACKAGES</label>
+            <description>DESC_AVAILABLE_PACKAGES</description>
+        </field>
+
+        <subroutine src="print_skip_header()" />
+
+        <subroutine src="print_button('INSTALL_SOFTWARE')" />
+    </page>
+
+    <page name="YUM_PAGE_REMOVE" 
+	pre-event="turn_off_buttons"
+	post-event="do_yum('remove')">
+
+	<field
+	    type="literal">
+	    <description>HEADER_INSTALLED_SOFTWARE</description>
+	</field>
+	
+        <field
+            type="select" multiple="1"
+            id="SelectedGroups"
+	    display="non_empty('installed','group')"
+            options="get_options('installed','group')">
+            <label>LABEL_INSTALLED_GROUPS</label>
+            <description>DESC_INSTALLED_GROUPS</description>
+        </field>
+
+        <field
+            type="select" multiple="1"
+            id="SelectedPackages"
+	    display="non_empty('installed','package')"
+            options="get_options('installed','package')">
+            <label>LABEL_INSTALLED_PACKAGES</label>
+            <description>DESC_INSTALLED_PACKAGES</description>
+        </field>
+
+        <subroutine src="print_skip_header()" />
+
+        <subroutine src="print_button('REMOVE')" />
+    </page>
+
+    <page name="YUM_PAGE_CONFIGURATION" 
+	pre-event="turn_off_buttons"
+        post-event="change_settings">
+
+	<field
+            type="select"
+            id="yum_check4updates"
+	    options="'disabled' => 'DISABLED', 'daily' => '1DAILY', 'weekly' => '2WEEKLY', 'monthly' => '3MONTHLY'"
+            value="get_status('check4updates')">
+            <label>LABEL_YUM_STATUS</label>
+        </field>
+
+        <field
+            type="select"
+            id="yum_PackageFunctions"
+	    options="'disabled' => 'DISABLED', 'enabled' => 'ENABLED'"
+            value="get_status('PackageFunctions')">
+            <label>LABEL_YUM_PACKAGEFUNCTIONS</label>
+            <description>DESC_YUM_PACKAGEFUNCTIONS</description>
+        </field>
+
+ 	<field
+            type="select" multiple="1"
+            id="SelectedRepositories"
+            options="get_repository_options()"
+            value="get_repository_current_options()">
+            <label>LABEL_ENABLED_REPOSITORIES</label>
+            <description>DESC_ENABLED_REPOSITORIES</description>
+        </field>
+
+
+        <subroutine src="print_button('SAVE')" />
+    </page>
+
+    <page name="YUM_PAGE_POSTUPGRADE" 
+	pre-event="print_status_message()"
+        post-event="post_upgrade_reboot()">
+
+	<field
+	    type="literal">
+	    <description>HEADER_POSTUPGRADE_REQUIRED</description>
+	</field>
+
+        <subroutine src="display_yum_log()" />
+
+        <subroutine src="print_button('RECONFIGURE')" />
+    </page>
+
+</form>

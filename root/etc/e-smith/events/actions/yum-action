@@ -1,0 +1,67 @@
+#!/usr/bin/perl -w
+#----------------------------------------------------------------------
+# Yum actions
+# Copyright (C) 2005-2006 Gordon Rowell <gordonr@gormand.com.au>
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License or more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+#----------------------------------------------------------------------
+
+use strict;
+use warnings;
+use esmith::ConfigDB;
+
+use constant YUM_CMD => qw(/usr/bin/yum -d 2 -e 2 -y);
+
+my $db = esmith::ConfigDB->open or die "Couldn't open ConfigDB\n";
+
+my $event = $ARGV[0];
+
+my $function = $event;
+$function =~ s/yum-//;
+
+die "Unknown function $function\n" 
+    unless ($function =~ /install|update|remove/);
+
+my $log_file = "/var/log/yum/yum.log." . time();
+$db->set_prop('yum', 'LogFile', $log_file);
+
+open STDOUT, '>', "$log_file" or die "Can't redirect STDOUT: $!";
+open STDERR, ">&STDOUT"     or die "Can't dup STDOUT: $!";
+
+# Make yum send output immediately, so server-manager sees progress
+$ENV{PYTHONUNBUFFERED} = 1;
+
+# XXX - FIXME - For groupremove, we need to do a grouplist on the group
+# and then work out what to do
+
+my @groups   = split(',',
+            ($db->get_prop_and_delete('yum', 'SelectedGroups') || ''));
+
+my @packages = split(',',
+            ($db->get_prop_and_delete('yum', 'SelectedPackages') || ''));
+
+if (@groups)
+{
+    system(YUM_CMD, "group$function", @groups) == 0 or
+	die "yum group$function @groups failed: $?\n";
+}
+
+if (@packages)
+{
+    system(YUM_CMD, $function, @packages) == 0 or
+	die "yum $function @packages failed: $?\n";
+}
+
+exit 0;

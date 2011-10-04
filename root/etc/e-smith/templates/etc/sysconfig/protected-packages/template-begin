@@ -1,0 +1,4 @@
+{
+    $pkgs = $yum{Protected} || 'e-smith-base,smeserver-support';
+    $OUT = join "\n", split /[,;]/, $pkgs;
+}

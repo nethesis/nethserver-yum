@@ -1,0 +1,16 @@
+{
+    for my $repo ($DB->get_all_by_prop(type => 'repository'))
+    {
+        %props = $repo->props;
+
+        if (defined $props{GPGCheck}) {
+        $props{GPGCheck} = 'yes' if ($props{GPGCheck} =~ /1/);
+        $props{GPGCheck} = 'no'  if ($props{GPGCheck} =~ /0/);
+    }
+        if (defined $props{EnableGroups}) {
+        $props{EnableGroups} = 'yes' if ($props{EnableGroups} =~ /1/);
+        $props{EnableGroups} = 'no'  if ($props{EnableGroups} =~ /0/);
+    }
+        $repo->merge_props(%props);
+    }
+}

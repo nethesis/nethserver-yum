@@ -1,0 +1,263 @@
+<lexicon lang="en-us"> 
+    <!-- vim: ft=xml:
+    -->
+    <entry>
+	<base>Software installer</base>
+	<trans>Software installer</trans>
+    </entry>
+
+    <entry>
+        <base>SUCCESS</base>
+        <trans>The new settings have been saved.</trans>
+    </entry>
+
+    <entry>
+        <base>LABEL_YUM_STATUS</base>
+        <trans>Check for updates</trans>
+    </entry>
+
+    <entry>
+	<base>LABEL_YUM_AUTOINSTALLUPDATES</base>
+	<trans>Automatically install updates</trans>
+   </entry>
+
+    <entry>
+	<base>LABEL_YUM_PACKAGEFUNCTIONS</base>
+	<trans>Manage individual packages</trans>
+    </entry>
+
+    <entry>
+	<base>DESC_YUM_PACKAGEFUNCTIONS</base>
+	<trans>
+		The software installer can manage groups of 
+		related package or individual packages. By 
+		default, only groups of packages are presented.
+		If you wish to manage individual packages, 
+		enable this option. This should only be done 
+		by experienced administrators.
+	</trans>
+    </entry>
+
+    <entry>
+	<base>LABEL_ENABLED_REPOSITORIES</base>
+	<trans>Enabled repositories</trans>
+    </entry>
+
+    <entry>
+	<base>DESC_ENABLED_REPOSITORIES</base>
+	<trans>
+		The software installer can install software
+		from any of enabled repositories. To enable
+		a repository, select it from the list. 
+		To disable a repository, de-select it from the list.
+		By default, only stable, tested software is available
+		for installation.
+	</trans>
+    </entry>
+
+    <entry>
+        <base>DESC_UPTODATE</base>
+        <trans>
+            <![CDATA[
+            <div class="success">
+                <h2>This system is up to date.</h2>
+
+                All updates have been installed.
+            </div>
+            ]]>
+        </trans>
+    </entry>
+
+    <entry>
+        <base>DESC_UPDATES_AVAILABLE</base>
+        <trans>
+            <![CDATA[
+            <div class="success">
+                <h2>Updates Available</h2>
+
+                There are updates available for your system. These updates 
+                should be installed as soon as possible.
+            </div>
+            ]]>
+        </trans>
+    </entry>
+
+    <entry>
+        <base>LABEL_AVAILABLE_UPDATES</base>
+        <trans>Updates available</trans>
+    </entry>
+
+    <entry>
+        <base>DESC_AVAILABLE_UPDATES</base>
+        <trans>
+            The following updates are available for your system. 
+            You should normally install all available updates. 
+            If there are updates you do not wish to install, de-select
+            them from the list below.
+        </trans>
+    </entry>
+
+    <entry>
+        <base>INSTALL_UPDATES</base>
+        <trans>Install selected updates</trans>
+    </entry>
+
+    <entry>
+        <base>DESC_BUTTON_INSTALL_UPDATES</base>
+        <trans>
+            <![CDATA[
+            <a class="button-like"
+                href="yum?page=0&page_stack=&Next=Next&wherenext=YUM_PAGE_INSTALL_UPDATES">Install available updates</a>
+                ]]>
+        </trans>
+    </entry>
+
+    <entry>
+	<base>HEADER_AVAILABLE_SOFTWARE</base>
+	<trans>
+	    The following software is available to be installed 
+	    onto your system. You should only install additional
+            software onto this system if you are aware
+            of the consequences of doing so.
+	</trans>
+    </entry>
+
+    <entry>
+	<base>DESC_AVAILABLE_GROUPS</base>
+	<trans>
+	    You can select software groups
+	    to install from the list below.
+	</trans>
+    </entry>
+
+    <entry>
+	<base>LABEL_AVAILABLE_GROUPS</base>
+	<trans>Available groups</trans>
+    </entry>
+
+    <entry>
+	<base>DESC_AVAILABLE_PACKAGES</base>
+	<trans>
+	    You can also select individual packages 
+	    to install from the list below.
+	</trans>
+    </entry>
+
+    <entry>
+	<base>LABEL_AVAILABLE_PACKAGES</base>
+	<trans>Available packages</trans>
+    </entry>
+
+    <entry>
+	<base>INSTALL_SOFTWARE</base>
+	<trans>Install</trans>
+    </entry>
+
+    <entry>
+	<base>HEADER_INSTALLED_SOFTWARE</base>
+	<trans>
+	    The following software is installed 
+	    on this system. You should only remove
+	    software from this system if you are aware
+	    of the consequences of doing so.
+	</trans>
+    </entry>
+
+    <entry>
+	<base>DESC_INSTALLED_GROUPS</base>
+	<trans>
+	    You can select software groups
+	    to remove from the list below.
+	</trans>
+    </entry>
+
+    <entry>
+	<base>LABEL_INSTALLED_GROUPS</base>
+	<trans>Installed groups</trans>
+    </entry>
+
+    <entry>
+	<base>DESC_INSTALLED_PACKAGES</base>
+	<trans>
+		You can also select individual packages 
+		you wish to remove from the list below.
+	</trans>
+    </entry>
+
+    <entry>
+	<base>LABEL_INSTALLED_PACKAGES</base>
+	<trans>Installed packages</trans>
+    </entry>
+
+    <entry>
+        <base>DESC_BUTTON_CONFIGURATION</base>
+        <trans>
+            <![CDATA[
+            <a class="button-like"
+                href="yum?page=0&page_stack=&Next=Next&wherenext=YUM_PAGE_CONFIGURATION">Change software installer settings</a>
+                ]]>
+        </trans>
+    </entry>
+
+    <entry>
+        <base>DESC_BUTTON_INSTALL_AVAILABLE</base>
+        <trans>
+            <![CDATA[
+            <a class="button-like"
+                href="yum?page=0&page_stack=&Next=Next&wherenext=YUM_PAGE_INSTALL_AVAILABLE">Install additional software</a>
+                ]]>
+	</trans>
+    </entry>
+
+    <entry>
+        <base>DESC_BUTTON_REMOVE</base>
+        <trans>
+            <![CDATA[
+            <a class="button-like"
+                href="yum?page=0&page_stack=&Next=Next&wherenext=YUM_PAGE_REMOVE">Remove installed software</a>
+                ]]>
+	</trans>
+    </entry>
+
+    <entry>
+	<base>HEADER_POSTUPGRADE_REQUIRED</base>
+	<trans>
+		<![CDATA[
+	       The system needs to be reconfigured
+	       after adding or removing software,
+	       or applying updates. 
+
+                <p>
+		Please click on the Reconfigure button at the bottom of
+		this page to start the reconfiguration process.
+	       <b>An automatic reboot will be
+	       initiated as part of this reconfiguration process</b>
+		</p>
+		]]>
+       </trans>
+     </entry>
+
+    <entry>
+	<base>SYSTEM_BEING_RECONFIGURED</base>
+	<trans>
+		Your system is being automatically rebooted to 
+		complete the reconfiguraton process.
+	</trans>
+    </entry>
+
+    <entry>
+      <base>1DAILY</base>
+      <trans>Daily</trans>
+    </entry>
+
+    <entry>
+      <base>2WEEKLY</base>
+      <trans>Weekly</trans>
+    </entry>
+
+    <entry>
+      <base>3MONTHLY</base>
+      <trans>Monthly</trans>
+    </entry>
+ 
+</lexicon>

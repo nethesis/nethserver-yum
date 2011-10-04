@@ -1,0 +1,33 @@
+{
+    return unless (length($nethupdate{SystemID}) > 0);
+
+    $OUT  = "[nethupdate]\n";
+    $OUT .= "name=Nethesis - updates\n";
+    $OUT .= "baseurl=http://update.nethesis.it/nethservice.php/${nethupdate{SystemID}}/${sysconfig{ReleaseVersion}}/updates\n";
+    $OUT .= "gpgcheck=1\n";
+    $OUT .= "enablegroups=0\n";
+    $OUT .= "enabled=1\n";
+    $OUT .= "http_caching=none\n";
+
+    if (exists $nethupdate{Exclude})
+    {
+        $OUT .= "exclude=" . join(' ', split(/,/, $nethupdate{Exclude})) . "\n";
+    }
+
+    $OUT .= "\n";
+
+    $OUT .= "[nethupgrade]\n";
+    $OUT .= "name=Nethesis - upgrades\n";
+    $OUT .= "baseurl=http://update.nethesis.it/nethservice.php/${nethupdate{SystemID}}/${sysconfig{ReleaseVersion}}/upgrades\n";
+    $OUT .= "gpgcheck=1\n";
+    $OUT .= "enablegroups=0\n";
+    $OUT .= "enabled=0\n";
+    $OUT .= "http_caching=none\n";
+
+    if (exists $nethupdate{Exclude})
+    {
+        $OUT .= "exclude=" . join(' ', split(/,/, $nethupdate{Exclude})) . "\n";
+    }
+
+    $OUT .= "\n";
+}

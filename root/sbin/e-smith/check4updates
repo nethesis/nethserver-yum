@@ -1,0 +1,25 @@
+#! /bin/bash
+
+mkdir -p /tmp/check4updates.$$
+TMPFILE=`mktemp /tmp/check4updates.$$/XXXXXXXXXX` || exit 1
+TMP1=`mktemp /tmp/check4updates.$$/XXXXXXXXXX` || exit 1
+
+MAILADDR=admin-yum
+
+yum -e 0 -d 0 check-update > $TMP1
+if [ $? = 100 ]; then
+  echo -e "===\n=== yum reports available updates:\n===" >> $TMPFILE
+  cat $TMP1 >> $TMPFILE
+fi
+
+if [ -s $TMPFILE ]; then
+  if [ "$1" = "-m" ]; then
+    mail $MAILADDR -s "Updates available for `hostname`" < $TMPFILE
+  else
+    echo "Updates available for `hostname`"
+    cat $TMPFILE
+  fi
+fi
+
+rm -f $TMPFILE $TMP1
+rm -fr /tmp/check4updates.*
