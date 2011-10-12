@@ -1,1 +1,1 @@
-reposdir=/etc/yum.smerepos.d
+reposdir=/etc/yum.repos.d
