@@ -34,8 +34,14 @@ $function =~ s/yum-//;
 die "Unknown function $function\n" 
     unless ($function =~ /install|update|remove/);
 
-my $log_file = "/var/log/yum/yum.log." . time();
-$db->set_prop('yum', 'LogFile', $log_file);
+my $type = $ARGV[1]; # can be "group" or "package"
+
+my @list;
+
+foreach my $argnum (2 .. $#ARGV) {
+  push(@list, $ARGV[$argnum]);
+}
+my $log_file = "/var/log/yum.ouput";
 
 open STDOUT, '>', "$log_file" or die "Can't redirect STDOUT: $!";
 open STDERR, ">&STDOUT"     or die "Can't dup STDOUT: $!";
@@ -43,25 +49,16 @@ open STDERR, ">&STDOUT"     or die "Can't dup STDOUT: $!";
 # Make yum send output immediately, so server-manager sees progress
 $ENV{PYTHONUNBUFFERED} = 1;
 
-# XXX - FIXME - For groupremove, we need to do a grouplist on the group
-# and then work out what to do
 
-my @groups   = split(',',
-            ($db->get_prop_and_delete('yum', 'SelectedGroups') || ''));
-
-my @packages = split(',',
-            ($db->get_prop_and_delete('yum', 'SelectedPackages') || ''));
-
-if (@groups)
+if ($type eq "group")
 {
-    system(YUM_CMD, "group$function", @groups) == 0 or
-	die "yum group$function @groups failed: $?\n";
+    system(YUM_CMD, "group$function", @list) == 0 or
+	die "yum group$function @list failed: $?\n";
 }
-
-if (@packages)
+elsif ($type eq "package")
 {
-    system(YUM_CMD, $function, @packages) == 0 or
-	die "yum $function @packages failed: $?\n";
+    system(YUM_CMD, $function, @list) == 0 or
+	die "yum $function @list failed: $?\n";
 }
 
 exit 0;
