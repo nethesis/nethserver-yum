@@ -39,5 +39,4 @@ for ( qw(bootstrap-console-save yum-update) )
 #--------------------------------------------------
 safe_touch("root/etc/e-smith/db/configuration/defaults/nethupdate/SystemID");
 event_link("yum-update-system", "nethupdate-install-systemid", "70");
-service_link_enhanced("yum-cron", "S90", "7");
 
