@@ -23,10 +23,6 @@ for ( qw(install remove update) )
     event_link("initialize-default-databases", "yum-$_", "50");
 }
 
-for ( qw(install remove update modify) )
-{
-    event_link("yum-update-dbs", "yum-$_", "90");
-}
 
 for ( qw(bootstrap-console-save yum-update) )
 {
