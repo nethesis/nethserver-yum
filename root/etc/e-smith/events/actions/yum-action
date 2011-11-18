@@ -49,16 +49,22 @@ open STDERR, ">&STDOUT"     or die "Can't dup STDOUT: $!";
 # Make yum send output immediately, so server-manager sees progress
 $ENV{PYTHONUNBUFFERED} = 1;
 
-
-if ($type eq "group")
-{
-    system(YUM_CMD, "group$function", @list) == 0 or
-	die "yum group$function @list failed: $?\n";
-}
-elsif ($type eq "package")
+if($function eq 'update')
 {
     system(YUM_CMD, $function, @list) == 0 or
-	die "yum $function @list failed: $?\n";
+            die "yum $function @list failed: $?\n";
+} else {
+
+    if ($type eq "group")
+    {
+        system(YUM_CMD, "group$function", @list) == 0 or
+	    die "yum group$function @list failed: $?\n";
+    }
+    elsif ($type eq "package")
+    {
+        system(YUM_CMD, $function, @list) == 0 or
+	    die "yum $function @list failed: $?\n";
+    }
 }
 
 exit 0;
