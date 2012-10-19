@@ -1,8 +1,0 @@
-#!/bin/sh
-
-/usr/bin/yum -e 0 -d 0 -y update yum
-/usr/bin/yum -e 0 -d 0 -y update smeserver-yum
-/usr/bin/yum -e 0 -d 0 -y shell /etc/yum/yum-daily.yum
-/bin/rpm -q neth-base 2> /dev/null > /dev/null \
-    || /usr/bin/yum -e 0 -d 0 -y install neth-base
-

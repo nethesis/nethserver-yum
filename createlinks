@@ -4,35 +4,4 @@ use esmith::Build::CreateLinks qw(:all);
 use File::Basename;
 use File::Path;
 
-foreach my $file (qw(/etc/yum.conf /etc/sysconfig/protected-packages
-                     /etc/yum.repos.d/nethserver.repo))
-{
-    templates2events($file, qw(
-        yum-modify
-        bootstrap-console-save
-        nethupdate-install-systemid
-        post-upgrade
-    ));
-}
-
-templates2events("/etc/crontab", "yum-modify");
-
-for ( qw(install remove update) )
-{
-    event_link("yum-action", "yum-$_", "20");
-    event_link("initialize-default-databases", "yum-$_", "50");
-}
-
-
-for ( qw(bootstrap-console-save yum-update) )
-{
-    event_link("yum-import-keys", $_, "10");
-}
-
-
-#--------------------------------------------------
-# nethupdate
-#--------------------------------------------------
-safe_touch("root/etc/e-smith/db/configuration/defaults/nethupdate/SystemID");
-event_link("yum-update-system", "nethupdate-install-systemid", "70");
 

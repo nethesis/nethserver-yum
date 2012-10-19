@@ -1,8 +1,0 @@
-{
-    for my $name ( qw(base updates) )
-    {
-	my $repo = $DB->get($name) or next;
-
-        $repo->set_prop('Visible', 'yes');
-    }
-}

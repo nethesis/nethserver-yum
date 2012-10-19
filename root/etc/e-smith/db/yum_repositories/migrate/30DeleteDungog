@@ -1,4 +1,0 @@
-{
-    my $repo = $DB->get('dungog');
-    $repo->delete if $repo;
-}
