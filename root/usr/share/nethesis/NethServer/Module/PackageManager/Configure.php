@@ -28,19 +28,5 @@ namespace NethServer\Module\PackageManager;
  */
 class Configure extends \Nethgui\Controller\AbstractController
 {
-    public function initialize()
-    {
-        parent::initialize();
-        $this->getLog()->setLevel(E_ALL)->notice('INIT')->setLevel(E_ERROR | E_WARNING);
-    }
-    public function bind(\Nethgui\Controller\RequestInterface $request)
-    {
-        parent::bind($request);
-        $this->getLog()->setLevel(E_ALL)->notice('BIND')->setLevel(E_ERROR | E_WARNING);
-    }
-    public function prepareView(\Nethgui\View\ViewInterface $view)
-    {
-        parent::prepareView($view);
-        $this->getLog()->setLevel(E_ALL)->notice('VIEW')->setLevel(E_ERROR | E_WARNING);
-    }
+
 }

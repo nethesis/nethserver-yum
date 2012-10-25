@@ -40,7 +40,6 @@ class PackageManager extends \Nethgui\Controller\TableController
 
         $columns = array(
             'Name',
-            'Description',
             'Status',
             'Actions'
         );
@@ -48,8 +47,8 @@ class PackageManager extends \Nethgui\Controller\TableController
         $this
             ->setTableAdapter($adapter)
             ->setColumns($columns)
-            ->addRowAction(new PackageManager\Add())
-            ->addRowAction(new PackageManager\Remove())
+            ->addRowAction(new PackageManager\Operation('Add'))
+            ->addRowAction(new PackageManager\Operation('Remove'))
             ->addTableAction(new PackageManager\Configure())
             ->addTableAction(new \Nethgui\Controller\Table\Help('Help'))
         ;
@@ -67,7 +66,6 @@ class PackageManager extends \Nethgui\Controller\TableController
         } else {
             unset($cellView['Add']);
         }
-
 
         return $cellView;
     }

@@ -21,7 +21,12 @@ namespace NethServer\Module\PackageManager;
  */
 
 /**
- * TODO: add component description here
+ * Expose yum package groups as a database table. All props but Status and
+ * SelectedOptionalPackages are readonly.
+ *
+ * - Status can be set to "installed" or "available"
+ * - SelectedOptionalPackages can be set to a comma separated list of packages.
+ *   These packages must be chosen from the AvailableOptionalPackages list.
  *
  * @author Davide Principi <davide.principi@nethesis.it>
  * @since 1.0
@@ -39,10 +44,13 @@ class YumAdapter implements \Nethgui\Adapter\AdapterInterface, \ArrayAccess, \Co
      * @var \ArrayObject
      */
     private $data;
+    private $queueAdd, $queueRemove;
 
     public function __construct(\Nethgui\System\PlatformInterface $platform)
     {
         $this->platform = $platform;
+        $this->queueAdd = array();
+        $this->queueRemove = array();
     }
 
     /**
@@ -57,7 +65,7 @@ class YumAdapter implements \Nethgui\Adapter\AdapterInterface, \ArrayAccess, \Co
 
     public function isModified()
     {
-        return FALSE;
+        return count($this->queueAdd) > 0 || count($this->queueRemove) > 0;
     }
 
     public function get()
@@ -106,6 +114,36 @@ class YumAdapter implements \Nethgui\Adapter\AdapterInterface, \ArrayAccess, \Co
 
     public function offsetSet($offset, $value)
     {
+        if ( ! isset($this->data)) {
+            $this->lazyInitialization();
+        }
+
+        $currentRecord = $this->data[$offset];
+
+        if (is_array($currentRecord) && $currentRecord['Status'] !== $value['Status']) {
+            if ($value['Status'] === 'installed') {
+                $this->queueAdd[] = '@' . $offset;
+                if ($value['SelectedOptionalPackages']) {
+                    $selectedOptionalPackages = array_filter(explode(',', $value['SelectedOptionalPackages']));
+                    $validOptionalPackages = array_filter(explode(',', $value['AvailableOptionalPackages']));
+
+                    foreach ($selectedOptionalPackages as $optionalPackage) {
+                        if ( ! in_array($optionalPackage, $validOptionalPackages)) {
+                            throw new \UnexpectedValueException(
+                                sprintf(
+                                    "%s: Cannot install package %s as optional package of group %s", __CLASS__, $optionalPackage, $offset),
+                                1351174719
+                            );
+                        }
+                        $this->queueAdd[] = $optionalPackage;
+                    }
+                }
+            } elseif ($value['Status'] === 'available') {
+                $this->queueRemove[] = '@' . $offset;
+            }
+            return;
+        }
+
         throw new \LogicException(sprintf("%s: read-only adapter, %s() method is not allowed", __CLASS__, __METHOD__), 1351072309);
     }
 
@@ -116,7 +154,21 @@ class YumAdapter implements \Nethgui\Adapter\AdapterInterface, \ArrayAccess, \Co
 
     public function save()
     {
-        throw new \LogicException(sprintf("%s: read-only adapter, %s() method is not allowed", __CLASS__, __METHOD__), 1351072307);
+        if ( ! $this->isModified()) {
+            return FALSE;
+        }
+
+        // FIXME send process in background:
+        if (count($this->queueAdd) > 0) {
+            $process = $this->getPlatform()->exec('/usr/bin/sudo /sbin/e-smith/pkgaction install ${@}', $this->queueAdd);
+        } else {
+            $process = $this->getPlatform()->exec('/usr/bin/sudo /sbin/e-smith/pkgaction remove ${@}', $this->queueRemove);
+        }
+
+        // Flush cached data
+        unset($this->data);
+
+        return TRUE;
     }
 
     public function set($value)
@@ -158,10 +210,11 @@ class YumAdapter implements \Nethgui\Adapter\AdapterInterface, \ArrayAccess, \Co
                     'Status' => $dState,
                     'Name' => isset($dGroup['translated_name'][$lang]) ? $dGroup['translated_name'][$lang] : $dGroup['name'],
                     'Description' => isset($dGroup['translated_description'][$lang]) ? $dGroup['translated_description'][$lang] : $dGroup['description'],
-                    'OptionalPackages' => $dGroup['optional_packages'],
-                    'DefaultPackages' => $dGroup['default_packages'],
-                    'MandatoryPackages' => $dGroup['mandatory_packages'],
-                    'ConditionalPackages' => $dGroup['conditional_packages'],
+                    'AvailableOptionalPackages' => implode(',', $dGroup['optional_packages']),
+                    'SelectedOptionalPackages' => '',
+                    'AvailableDefaultPackages' => implode(',', $dGroup['default_packages']),
+                    'AvailableMandatoryPackages' => implode(',', $dGroup['mandatory_packages']),
+                    'AvailableConditionalPackages' => implode(',', $dGroup['conditional_packages']),
                 );
             }
         }
