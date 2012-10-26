@@ -1,0 +1,64 @@
+#!/usr/bin/python
+import yum
+import os
+import sys
+import simplejson
+
+class JSONDisplayCallBack(yum.rpmtrans.RPMBaseCallback):
+    def __init__(self):
+        yum.rpmtrans.RPMBaseCallback.__init__(self)
+        self.lastmsg = None
+        self.lastpackage = None # name of last package we looked at
+
+    def event(self, package, action, te_current, te_total, ts_current, ts_total):
+        msg = {
+           "package" : "%s" % package,
+           "action" : action,
+           "te_current" : te_current,
+           "te_total" : te_total,
+           "ts_current" : ts_current,
+           "ts_total" : ts_total,
+        }
+        if msg != self.lastmsg:
+            print simplejson.dumps (msg)
+        self.lastmsg = msg
+        self.lastpackage = package
+
+    def scriptout(self, package, msgs):
+        if msgs:
+            print msgs,
+
+def usage():
+    print "Usage: %s <command> [pkg] [@grp]" % sys.argv[0]
+    print "    command: install|update|remove"
+    sys.exit(0)
+
+def main():
+    if len(sys.argv) < 3:
+        usage()
+    if sys.argv[1] != "install" and sys.argv[1] != "update" and sys.argv[1] != "remove":
+        usage()
+    try:
+        ypbc = yum._YumPreBaseConf()
+        ypbc.debuglevel = 0
+        ypbc.errorlevel = 0
+        yb = yum.YumBase()
+        yb.preconf = ypbc
+        action = sys.argv[1]
+        if action == "install":
+            for pkg in sys.argv[2:]: 
+                yb.install(pattern=pkg)
+        elif action == "update":
+            for pkg in sys.argv[2:]: 
+                yb.update(pattern=pkg)
+        elif action == "remove":
+            for pkg in sys.argv[2:]: 
+                yb.remove(pattern=pkg)
+        yb.resolveDeps()
+        yb.processTransaction(rpmDisplay=JSONDisplayCallBack())
+    except Exception, e:
+        print simplejson.dumps({'error':"%s"%e})
+        sys.exit(1)
+
+if __name__ == "__main__":
+    main()

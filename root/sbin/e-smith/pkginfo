@@ -1,0 +1,100 @@
+#!/usr/bin/python
+import yum
+import os
+import sys
+import simplejson
+
+
+def usage():
+    print "Usage: %s <command> [name]" % sys.argv[0]
+    print "    command: grouplist|info"
+    sys.exit(0)
+
+
+def _pkg_to_dict(pkg, installed=False):
+    ret = {}
+    ret['name'] = pkg.name
+    ret['arch'] = pkg.arch
+    ret['epoc'] = pkg.epoch
+    ret['version'] = pkg.version 
+    ret['release'] = pkg.release
+    ret['description'] = pkg.description
+    ret['summary'] = pkg.summary
+    ret['license'] = pkg.license
+    ret['size'] = pkg.size
+    ret['url'] = pkg.url
+    ret['repo'] = "%s" % pkg.repo
+    ret['installed'] = installed
+
+    return ret
+    
+
+def _pkg_list(yb, pkg):
+    ypl = yb.doPackageLists(pkgnarrow="all", patterns="*", ignore_case=True)
+    for p in ypl.installed:
+        if pkg == p.name:
+            return _pkg_to_dict(p,True)
+    for p in ypl.available:
+        if pkg == p.name:
+            return _pkg_to_dict(p,False)
+    
+
+def pkginfo(yb, pkg):
+    print simplejson.dumps(_pkg_list(yb, pkg))
+
+
+def grouplist(yb):
+    groups = {}
+    groups["installed"] = []
+    groups["available"] = []
+    for g in  yb.comps.return_groups("*"):
+        if not g.user_visible:
+            continue
+        tmp = {
+            'id' : g.groupid,
+            'name' : g.name,
+            'description' : g.description,
+            'translated_name' : g.translated_name,
+            'description': g.translated_description,
+            'mandatory_packages': g.mandatory_packages.keys(),
+            'optional_packages': g.optional_packages.keys(),
+            'default_packages' : g.default_packages.keys(),
+            'conditional_packages': g.conditional_packages.keys()
+        }
+        if g.installed:
+            groups["installed"].append(tmp)
+        else:
+            groups["available"].append(tmp)
+    print( simplejson.dumps(groups) )
+
+
+def main():
+    if len(sys.argv) < 2:
+        usage()
+    if sys.argv[1] != "grouplist" and sys.argv[1] != "info":
+        usage()
+    if sys.argv[1] == "info" and len(sys.argv) < 3:
+        usage()
+
+    try:
+        ypbc = yum._YumPreBaseConf()
+        ypbc.debuglevel = 0
+        ypbc.errorlevel = 0
+        ypbc.init_plugins = False
+        yb = yum.YumBase()
+        yb.preconf = ypbc
+        
+        action = sys.argv[1]
+        if action == 'grouplist':
+           grouplist(yb)
+        elif action == 'info':
+           pkginfo(yb,sys.argv[2])
+
+    except Exception, e:
+        print simplejson.dumps({'error':"%s"%e})
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()
+
