@@ -122,29 +122,40 @@ class YumAdapter implements \Nethgui\Adapter\AdapterInterface, \ArrayAccess, \Co
 
         if (is_array($currentRecord) && $currentRecord['Status'] !== $value['Status']) {
             if ($value['Status'] === 'installed') {
-                $this->queueAdd[] = '@' . $offset;
-                if ($value['SelectedOptionalPackages']) {
-                    $selectedOptionalPackages = array_filter(explode(',', $value['SelectedOptionalPackages']));
-                    $validOptionalPackages = array_filter(explode(',', $value['AvailableOptionalPackages']));
-
-                    foreach ($selectedOptionalPackages as $optionalPackage) {
-                        if ( ! in_array($optionalPackage, $validOptionalPackages)) {
-                            throw new \UnexpectedValueException(
-                                sprintf(
-                                    "%s: Cannot install package %s as optional package of group %s", __CLASS__, $optionalPackage, $offset),
-                                1351174719
-                            );
-                        }
-                        $this->queueAdd[] = $optionalPackage;
-                    }
-                }
+                $this->queueAddPackageGroup($offset, $value);
             } elseif ($value['Status'] === 'available') {
-                $this->queueRemove[] = '@' . $offset;
+                $this->queueRemovePackageGroup($offset, $value);
             }
             return;
         }
-
         throw new \LogicException(sprintf("%s: read-only adapter, %s() method is not allowed", __CLASS__, __METHOD__), 1351072309);
+    }
+
+    private function queueAddPackageGroup($groupId, $record)
+    {
+        $this->queueAdd[] = '@' . $groupId;
+        if ($record['SelectedOptionalPackages']) {
+            $selectedOptionalPackages = array_filter(explode(',', $record['SelectedOptionalPackages']));
+            $validOptionalPackages = array_filter(explode(',', $record['AvailableOptionalPackages']));
+
+            foreach ($selectedOptionalPackages as $optionalPackage) {
+                if ( ! in_array($optionalPackage, $validOptionalPackages)) {
+                    throw new \UnexpectedValueException(
+                        sprintf(
+                            "%s: Cannot install package %s as optional package of group %s", __CLASS__, $optionalPackage, $groupId),
+                        1351174719
+                    );
+                }
+                $this->queueAdd[] = $optionalPackage;
+            }
+        }
+        $this->data[$groupId]['Status'] = 'installing';
+    }
+
+    private function queueRemovePackageGroup($groupId, $record)
+    {
+        $this->queueRemove[] = '@' . $groupId;
+        $this->data[$groupId]['Status'] = 'removing';
     }
 
     public function offsetUnset($offset)
@@ -158,15 +169,18 @@ class YumAdapter implements \Nethgui\Adapter\AdapterInterface, \ArrayAccess, \Co
             return FALSE;
         }
 
-        // FIXME send process in background:
-        if (count($this->queueAdd) > 0) {
-            $process = $this->getPlatform()->exec('/usr/bin/sudo /sbin/e-smith/pkgaction install ${@}', $this->queueAdd);
-        } else {
-            $process = $this->getPlatform()->exec('/usr/bin/sudo /sbin/e-smith/pkgaction remove ${@}', $this->queueRemove);
+        $runningProcess = $this->getPlatform()->getDetachedProcess('PackageManager');
+        if ($runningProcess !== FALSE && $runningProcess->readExecutionState() === \Nethgui\System\ProcessInterface::STATE_RUNNING) {
+            throw new \UnexpectedValueException(sprintf("%s: cannot start pkgaction process, another instance is still present.", __CLASS__), 1351181599);
         }
 
-        // Flush cached data
-        unset($this->data);
+        if (count($this->queueAdd) > 0) {
+            $process = $this->getPlatform()->exec('/usr/bin/sudo /sbin/e-smith/pkgaction install ${@}', $this->queueAdd, TRUE);
+        } elseif (count($this->queueRemove) > 0) {
+            $process = $this->getPlatform()->exec('/usr/bin/sudo /sbin/e-smith/pkgaction remove ${@}', $this->queueRemove, TRUE);
+        }
+      
+        $process->setIdentifier('PackageManager');
 
         return TRUE;
     }

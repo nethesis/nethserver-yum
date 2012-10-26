@@ -71,7 +71,10 @@ class Operation extends \Nethgui\Controller\Table\RowAbstractAction
     public function validate(\Nethgui\Controller\ValidationReportInterface $report)
     {
         // Limit selected packages to those available:
-        $this->getValidator('SelectedOptionalPackages')->collectionValidator($this->createValidator()->memberOf($this->availableOptionalPackages));
+        $this->getValidator('SelectedOptionalPackages')->orValidator(
+            $this->createValidator()->isEmpty(), $this->createValidator()->collectionValidator($this->createValidator()->memberOf($this->availableOptionalPackages)
+            )
+        );
         parent::validate($report);
     }
 
@@ -85,16 +88,10 @@ class Operation extends \Nethgui\Controller\Table\RowAbstractAction
                 return array($package, $package);
             }, $this->availableOptionalPackages
         );
-    }
 
-    /**
-     * Return to default "read" action
-     *
-     * @return string 'read'
-     */
-    public function nextPath()
-    {
-        return 'read';
+        if ($this->getRequest()->isMutation()) {
+            $view->getCommandList()->sendQuery($view->getModuleUrl('../StatusTracker'));
+        }
     }
 
 }
