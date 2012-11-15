@@ -26,7 +26,7 @@ namespace NethServer\Module\PackageManager;
  * @author Davide Principi <davide.principi@nethesis.it>
  * @since 1.0
  */
-class Configure extends \Nethgui\Controller\AbstractController
+class Configure extends \Nethgui\Controller\Table\AbstractAction
 {
 
 }

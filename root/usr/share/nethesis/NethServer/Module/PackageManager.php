@@ -61,7 +61,6 @@ class PackageManager extends \Nethgui\Controller\TableController
     {
         $cellView = $action->prepareViewForColumnActions($view, $key, $values, $rowMetadata);
 
-
         if ($values['Status'] === 'available') {
             unset($cellView['Remove']);
         } else {
@@ -69,6 +68,11 @@ class PackageManager extends \Nethgui\Controller\TableController
         }
 
         return $cellView;
+    }
+
+    public function prepareViewForColumnStatus(\Nethgui\Controller\Table\Read $action, \Nethgui\View\ViewInterface $view, $key, $values, &$rowMetadata)
+    {
+        return $view->translate($values['Status']);
     }
 
 }
