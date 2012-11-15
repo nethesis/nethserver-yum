@@ -55,7 +55,7 @@ def grouplist(yb):
             'name' : g.name,
             'description' : g.description,
             'translated_name' : g.translated_name,
-            'description': g.translated_description,
+            'translated_description': g.translated_description,
             'mandatory_packages': g.mandatory_packages.keys(),
             'optional_packages': g.optional_packages.keys(),
             'default_packages' : g.default_packages.keys(),
