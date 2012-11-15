@@ -1,5 +1,8 @@
 <?php
 
+$L['PackageManager_Title'] = 'Packages manager';
+$L['PackageManager_Description'] = 'Adds and removes system package groups';
+$L['PackageManager_Tags'] = 'rpm yum addons extras';
 $L['Name_label'] = 'Group name';
 $L['Status_label'] = 'Status';
 $L['Add_label'] = 'Add';
