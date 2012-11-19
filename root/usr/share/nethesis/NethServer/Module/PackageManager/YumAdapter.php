@@ -179,7 +179,7 @@ class YumAdapter implements \Nethgui\Adapter\AdapterInterface, \ArrayAccess, \Co
         } elseif (count($this->queueRemove) > 0) {
             $process = $this->getPlatform()->exec('/usr/bin/sudo /sbin/e-smith/pkgaction remove ${@}', $this->queueRemove, TRUE);
         }
-      
+
         $process->setIdentifier('PackageManager');
 
         return TRUE;
@@ -218,6 +218,9 @@ class YumAdapter implements \Nethgui\Adapter\AdapterInterface, \ArrayAccess, \Co
 
         // Flatten the data structure:
         foreach (array('installed', 'available') as $dState) {
+            if ( ! isset($data[$dState])) {
+                continue;
+            }
             foreach ($data[$dState] as $dGroup) {
                 $this->data[$dGroup['id']] = array(
                     'Id' => $dGroup['id'],
