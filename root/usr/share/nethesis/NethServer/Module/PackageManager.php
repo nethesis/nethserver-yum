@@ -49,7 +49,6 @@ class PackageManager extends \Nethgui\Controller\TableController
             ->setColumns($columns)
             ->addRowAction(new PackageManager\Operation('Add'))
             ->addRowAction(new PackageManager\Operation('Remove'))
-            ->addTableAction(new PackageManager\Configure())
             ->addTableAction(new \Nethgui\Controller\Table\Help('Help'))
             ->addChild(new PackageManager\StatusTracker())
         ;
