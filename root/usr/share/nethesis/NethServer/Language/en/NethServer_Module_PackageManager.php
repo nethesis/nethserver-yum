@@ -1,6 +1,6 @@
 <?php
 
-$L['PackageManager_Title'] = 'Packages manager';
+$L['PackageManager_Title'] = 'Package manager';
 $L['PackageManager_Description'] = 'Adds and removes system package groups';
 $L['PackageManager_Tags'] = 'rpm yum addons extras';
 $L['Name_label'] = 'Group name';
@@ -14,3 +14,4 @@ $L['available'] = 'available';
 $L['installed'] = 'installed';
 $L['installing'] = 'installing..';
 $L['removing'] = 'removing..';
+$L['mandatory_packages'] = 'Mandatory packages:';

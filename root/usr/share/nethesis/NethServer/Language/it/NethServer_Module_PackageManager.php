@@ -14,3 +14,5 @@ $L['available'] = 'disponibile';
 $L['installed'] = 'installato';
 $L['installing'] = 'installazione in corso..';
 $L['removing'] = 'rimozione in corso..';
+$L['mandatory_packages'] = 'Mandatory packages:';
+$L['mandatory_packages'] = 'Pacchetti obbligatori:';
