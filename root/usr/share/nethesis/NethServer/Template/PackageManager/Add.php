@@ -6,6 +6,8 @@ echo $view->header('Id')->setAttribute('template', $T('Add ${0}'));
 
 echo $view->textLabel('Description');
 
+echo $view->fieldset()->setAttribute('template',$T('mandatory_packages'))->insert($view->textLabel('MandatoryDefaultPackages')->setAttribute('tag','pre'));
+
 echo $view->selector('SelectedOptionalPackages', $view::SELECTOR_MULTIPLE);
 
 echo $view->buttonList()

@@ -38,6 +38,8 @@ class Operation extends \Nethgui\Controller\Table\RowAbstractAction
         parent::initialize();
 
         $this->availableOptionalPackages = array();
+        $this->availableDefaultPackages = "";
+        $this->availableMandatoryPackages = "";
 
         $this->setSchema(array(
             array('Id', $this->createValidator(Validate::ANYTHING), Table::KEY),
@@ -59,6 +61,8 @@ class Operation extends \Nethgui\Controller\Table\RowAbstractAction
         $this->getAdapter()->setKeyValue($packageId);
         parent::bind($request);
         $this->availableOptionalPackages = array_filter(explode(',', $this->getAdapter()->offsetGet('AvailableOptionalPackages')));
+        $this->availableDefaultPackages = $this->getAdapter()->offsetGet('AvailableDefaultPackages');
+        $this->availableMandatoryPackages = $this->getAdapter()->offsetGet('AvailableMandatoryPackages');
         if ($request->isMutation()) {
             if ($this->getIdentifier() === 'Add') {
                 $this->parameters['Status'] = 'installed';
@@ -88,6 +92,11 @@ class Operation extends \Nethgui\Controller\Table\RowAbstractAction
                 return array($package, $package);
             }, $this->availableOptionalPackages
         );
+
+        $view['AvailableDefaultPackages'] = $this->availableDefaultPackages;
+        $str = implode("\n", explode(',',$this->availableMandatoryPackages));
+        $str .= implode("\n", explode(',',$this->availableDefaultPackages));
+        $view['MandatoryDefaultPackages'] = $str;
 
         if ($this->getRequest()->isMutation()) {
             $view->getCommandList()->sendQuery($view->getModuleUrl('../StatusTracker'));
