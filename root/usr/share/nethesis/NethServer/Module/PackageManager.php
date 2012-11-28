@@ -56,6 +56,12 @@ class PackageManager extends \Nethgui\Controller\TableController
         parent::initialize();
     }
 
+    public function bind(\Nethgui\Controller\RequestInterface $request)
+    {
+        $this->getAdapter()->setLanguage($request->getUser()->getLanguageCode());
+        parent::bind($request);
+    }
+
     public function prepareViewForColumnActions(\Nethgui\Controller\Table\Read $action, \Nethgui\View\ViewInterface $view, $key, $values, &$rowMetadata)
     {
         $cellView = $action->prepareViewForColumnActions($view, $key, $values, $rowMetadata);

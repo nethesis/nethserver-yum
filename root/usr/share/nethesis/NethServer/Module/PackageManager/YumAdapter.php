@@ -46,11 +46,18 @@ class YumAdapter implements \Nethgui\Adapter\AdapterInterface, \ArrayAccess, \Co
     private $data;
     private $queueAdd, $queueRemove;
 
+    private $language = 'en';
+
     public function __construct(\Nethgui\System\PlatformInterface $platform)
     {
         $this->platform = $platform;
         $this->queueAdd = array();
         $this->queueRemove = array();
+    }
+
+    public function setLanguage($lang) {
+        $this->language = $lang;
+        return $this;
     }
 
     /**
@@ -196,10 +203,7 @@ class YumAdapter implements \Nethgui\Adapter\AdapterInterface, \ArrayAccess, \Co
     }
 
     private function lazyInitialization()
-    {
-        // XXX: read from User object.
-        $lang = 'it';
-
+    {        
         /*
          * NOTE on package groups; packages:
          *  - "optional" are not automatic but can be checked
@@ -225,8 +229,8 @@ class YumAdapter implements \Nethgui\Adapter\AdapterInterface, \ArrayAccess, \Co
                 $this->data[$dGroup['id']] = array(
                     'Id' => $dGroup['id'],
                     'Status' => $dState,
-                    'Name' => isset($dGroup['translated_name'][$lang]) ? $dGroup['translated_name'][$lang] : $dGroup['name'],
-                    'Description' => isset($dGroup['translated_description'][$lang]) ? $dGroup['translated_description'][$lang] : $dGroup['description'],
+                    'Name' => isset($dGroup['translated_name'][$this->language]) ? $dGroup['translated_name'][$this->language] : $dGroup['name'],
+                    'Description' => isset($dGroup['translated_description'][$this->language]) ? $dGroup['translated_description'][$this->language] : $dGroup['description'],
                     'AvailableOptionalPackages' => implode(',', $dGroup['optional_packages']),
                     'SelectedOptionalPackages' => '',
                     'AvailableDefaultPackages' => implode(',', $dGroup['default_packages']),
