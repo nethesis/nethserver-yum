@@ -3,6 +3,7 @@ import yum
 import os
 import sys
 import simplejson
+import syslog
 
 class JSONDisplayCallBack(yum.rpmtrans.RPMBaseCallback):
     def __init__(self):
@@ -39,6 +40,7 @@ def main():
     if sys.argv[1] != "install" and sys.argv[1] != "update" and sys.argv[1] != "remove":
         usage()
     try:
+        syslog.openlog('pkgaction',syslog.LOG_PID);
         ypbc = yum._YumPreBaseConf()
         ypbc.debuglevel = 0
         ypbc.errorlevel = 0
@@ -47,17 +49,21 @@ def main():
         action = sys.argv[1]
         if action == "install":
             for pkg in sys.argv[2:]: 
+                syslog.syslog("Installing %s" % pkg);
                 yb.install(pattern=pkg)
         elif action == "update":
             for pkg in sys.argv[2:]: 
+                syslog.syslog("Updating %s" % pkg);
                 yb.update(pattern=pkg)
         elif action == "remove":
             for pkg in sys.argv[2:]: 
+                syslog.syslog("Removing %s" % pkg);
                 yb.remove(pattern=pkg)
         yb.resolveDeps()
         yb.processTransaction(rpmDisplay=JSONDisplayCallBack())
     except Exception, e:
         print simplejson.dumps({'error':"%s"%e})
+        syslog.syslog(syslog.LOG_ERR, "Error '%s'" % e);
         sys.exit(1)
 
 if __name__ == "__main__":
