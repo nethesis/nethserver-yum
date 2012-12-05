@@ -1,0 +1,75 @@
+#!/usr/bin/python
+# Copyright (C) 2012 Nethesis - http://www.nethesis.it
+# Giacomo Sanchietti <giacomo.sanchietti@nethesis.i>
+#   Original work: Federico Simoncelli <federico.simoncelli@nethesis.it>
+#
+# EnableOnlyRepo: disable all repositories except for the ones listed in command line
+# Example:
+#    eorepo [-v] repo1,repo2,repo3 
+#
+#    This program is free software; you can redistribute it and/or
+#    modify it under the terms of the GNU General Public License as
+#    published by the Free Software Foundation; either version 2 of
+#    the License, or (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program; if not, write to the Free Software
+#    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA     
+#                                        02111-1307  USA
+#
+# $Id$
+
+import os
+import sys 
+import yum
+import string
+
+def usage():
+    print "Usage: %s repo1[,repo2,repo3]\n";
+
+def disable_repo(enabled_repos,yumbase,log_handle):
+    for repo in yumbase.repos.listEnabled():
+        if not repo.id in enabled_repos:
+            out_msg = "Repository %s (%s) has been disabled." % (repo.id, repo.name)
+            repo.disablePersistent()
+            log_handle.write(out_msg + "\n")
+            print out_msg
+
+
+def enable_repo(enabled_repo,yumbase,log_handle):
+    for id in enabled_repo:
+        repo = yumbase.repos.getRepo(id)
+        if repo.enabled != True:
+            out_msg = "Repository %s (%s) has been enabled." % (repo.id, repo.name)
+            repo.enablePersistent()
+            log_handle.write(out_msg + "\n")
+            print out_msg
+
+
+def main ():
+    if len(sys.argv) < 2:
+        usage();
+        sys.exit(1);
+
+    yumbase = yum.YumBase()
+
+    log_file = "/root/%s.log" % os.path.basename(sys.argv[0])
+    log_handle = open(log_file, "a+")
+    
+    enabled_repos = sys.argv[1].split(',')
+    disable_repo(enabled_repos,yumbase,log_handle)
+    enable_repo(enabled_repos,yumbase,log_handle)
+
+    log_handle.close()
+
+    print "Log file: %s" % log_file
+
+    sys.exit(0);
+
+if __name__ == "__main__":
+    main()
