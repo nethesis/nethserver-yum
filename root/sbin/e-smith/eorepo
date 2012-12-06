@@ -28,46 +28,45 @@ import os
 import sys 
 import yum
 import string
+import syslog
 
 def usage():
     print "Usage: %s repo1[,repo2,repo3]\n";
+    sys.exit(1);
 
-def disable_repo(enabled_repos,yumbase,log_handle):
+def disable_repo(enabled_repos,yumbase):
     for repo in yumbase.repos.listEnabled():
         if not repo.id in enabled_repos:
             out_msg = "Repository %s (%s) has been disabled." % (repo.id, repo.name)
             repo.disablePersistent()
-            log_handle.write(out_msg + "\n")
+            syslog.syslog(out_msg + "\n");
             print out_msg
 
 
-def enable_repo(enabled_repo,yumbase,log_handle):
+def enable_repo(enabled_repo,yumbase):
     for id in enabled_repo:
         repo = yumbase.repos.getRepo(id)
         if repo.enabled != True:
             out_msg = "Repository %s (%s) has been enabled." % (repo.id, repo.name)
             repo.enablePersistent()
-            log_handle.write(out_msg + "\n")
+            syslog.syslog(out_msg + "\n");
             print out_msg
 
 
 def main ():
     if len(sys.argv) < 2:
         usage();
-        sys.exit(1);
 
+    syslog.openlog('eorepo',syslog.LOG_PID);
+    ypbc = yum._YumPreBaseConf()
+    ypbc.debuglevel = -1
+    ypbc.errorlevel = -1
     yumbase = yum.YumBase()
+    yumbase.preconf = ypbc
 
-    log_file = "/root/%s.log" % os.path.basename(sys.argv[0])
-    log_handle = open(log_file, "a+")
-    
-    enabled_repos = sys.argv[1].split(',')
-    disable_repo(enabled_repos,yumbase,log_handle)
-    enable_repo(enabled_repos,yumbase,log_handle)
-
-    log_handle.close()
-
-    print "Log file: %s" % log_file
+    enabled_repos = sys.argv[1:]
+    disable_repo(enabled_repos,yumbase)
+    enable_repo(enabled_repos,yumbase)
 
     sys.exit(0);
 
