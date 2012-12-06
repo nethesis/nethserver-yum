@@ -14,4 +14,5 @@ $L['available'] = 'available';
 $L['installed'] = 'installed'; 
 $L['installing'] = 'installing..'; 
 $L['mandatory_packages'] = 'Mandatory packages:'; 
+$L['package_success'] = 'Operation completed successfully'; 
 $L['removing'] = 'removing..'; 

@@ -14,4 +14,5 @@ $L['available'] = 'disponibile';
 $L['installed'] = 'installato'; 
 $L['installing'] = 'installazione in corso..'; 
 $L['mandatory_packages'] = 'Pacchetti obbligatori:'; 
+$L['package_success'] = 'Operazione completata correttamente'; 
 $L['removing'] = 'rimozione in corso..'; 

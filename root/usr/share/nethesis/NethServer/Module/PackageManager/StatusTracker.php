@@ -42,6 +42,18 @@ class StatusTracker extends \Nethgui\Controller\AbstractController
                 $this->done = TRUE;
             } elseif (is_object($process)) {
                 if ($process->readExecutionState() === \Nethgui\System\ProcessInterface::STATE_EXITED) {
+                    $output = $process->getOutputArray();
+                    $ret = json_decode(\Nethgui\array_end(array_filter($process->getOutputArray())),true);
+                    // ret is now an array with two elements
+                    //    exit_code => program exit code
+                    //    msg => error description if exit_code = 1
+                    if ($ret['exit_code'] == 0) { 
+                        $view->getCommandList('/Notification')->showMessage("package_success", \Nethgui\Module\Notification\AbstractNotification::NOTIFY_SUCCESS);
+                    } else {
+                        $msg = implode("<br/>", $ret['msg']); #Davide, do not look at this!!
+                        $view->getCommandList('/Notification')->showMessage($msg, \Nethgui\Module\Notification\AbstractNotification::NOTIFY_ERROR);
+                    } 
+                    $this->getLog()->notice(sprintf('%s: PackageManager process `%s` exit code: %d', __CLASS__, $process->getIdentifier(), $ret['exit_code']));
                     $this->done = TRUE;
                     if ( ! $process->isDisposed()) {
                         $process->dispose();
