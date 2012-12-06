@@ -32,7 +32,7 @@ class JSONDisplayCallBack(yum.rpmtrans.RPMBaseCallback):
 def usage():
     print "Usage: %s <command> [pkg] [@grp]" % sys.argv[0]
     print "    command: install|update|remove"
-    sys.exit(0)
+    sys.exit(1)
 
 def main():
     if len(sys.argv) < 3:
@@ -42,8 +42,8 @@ def main():
     try:
         syslog.openlog('pkgaction',syslog.LOG_PID);
         ypbc = yum._YumPreBaseConf()
-        ypbc.debuglevel = 0
-        ypbc.errorlevel = 0
+        ypbc.debuglevel = -1
+        ypbc.errorlevel = -1
         yb = yum.YumBase()
         yb.preconf = ypbc
         action = sys.argv[1]
@@ -62,9 +62,14 @@ def main():
         yb.resolveDeps()
         yb.processTransaction(rpmDisplay=JSONDisplayCallBack())
     except Exception, e:
-        print simplejson.dumps({'error':"%s"%e})
+        err = []
+        for l in e.value:
+           err.append("%s" % l) #avoid utf8 encoding
+        print simplejson.dumps(err)
         syslog.syslog(syslog.LOG_ERR, "Error '%s'" % e);
         sys.exit(1)
+
+    sys.exit(0);
 
 if __name__ == "__main__":
     main()
