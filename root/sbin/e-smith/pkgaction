@@ -65,10 +65,11 @@ def main():
         err = []
         for l in e.value:
            err.append("%s" % l) #avoid utf8 encoding
-        print simplejson.dumps(err)
+        print simplejson.dumps({'exit_code': 1, 'msg': err})
         syslog.syslog(syslog.LOG_ERR, "Error '%s'" % e);
         sys.exit(1)
 
+    print simplejson.dumps({'exit_code': 0, 'msg':'' })
     sys.exit(0);
 
 if __name__ == "__main__":
