@@ -93,10 +93,9 @@ class Operation extends \Nethgui\Controller\Table\RowAbstractAction
             }, $this->availableOptionalPackages
         );
 
-        $view['AvailableDefaultPackages'] = $this->availableDefaultPackages;
-        $str = implode("\n", explode(',',$this->availableMandatoryPackages));
-        $str .= implode("\n", explode(',',$this->availableDefaultPackages));
-        $view['MandatoryDefaultPackages'] = $str;
+        $view['MandatoryDefaultPackages'] = array_filter(array_merge(
+            explode(',', $this->availableMandatoryPackages), explode(',', $this->availableDefaultPackages)
+        ));
 
         if ($this->getRequest()->isMutation()) {
             $view->getCommandList()->sendQuery($view->getModuleUrl('../StatusTracker'));

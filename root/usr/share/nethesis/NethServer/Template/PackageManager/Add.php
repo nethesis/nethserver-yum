@@ -4,9 +4,15 @@
 
 echo $view->header('Id')->setAttribute('template', $T('Add ${0}'));
 
-echo $view->textLabel('Description');
+echo $view->textLabel('Description')->setAttribute('tag', 'p');
 
-echo $view->fieldset()->setAttribute('template',$T('mandatory_packages'))->insert($view->textLabel('MandatoryDefaultPackages')->setAttribute('tag','pre'));
+echo $view->fieldset()
+    ->setAttribute('template', $T('mandatory_packages'))
+    ->insert(
+        $view->textList('MandatoryDefaultPackages')
+        ->setAttribute('tag', 'div/ul.disc/li')
+    )
+;
 
 echo $view->selector('SelectedOptionalPackages', $view::SELECTOR_MULTIPLE);
 
