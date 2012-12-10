@@ -1,0 +1,55 @@
+Name: nethserver-yum
+Summary: NethServer package management
+Version: @@VERSION@@
+Release: @@RELEASE@@%{?dist}
+License: GPL
+Source: %{name}-%{version}.tar.gz
+BuildArch: noarch
+URL: http://dev.nethesis.it/projects/%{name}
+
+Requires: yum
+Requires: python, python-simplejson
+
+BuildRequires: nethserver-devtools
+
+
+%description
+yum-based package manager for NethServer
+
+%prep
+%setup
+
+%build
+perl createlinks
+
+%install
+/bin/rm -rf $RPM_BUILD_ROOT
+(cd root   ; /usr/bin/find . -depth -print | /bin/cpio -dump $RPM_BUILD_ROOT)
+
+%{genfilelist} \
+    --file '/sbin/e-smith/event_queue' 'attr(0555,root,root)'  \
+    $RPM_BUILD_ROOT > %{name}-%{version}-%{release}-filelist
+
+%files -f %{name}-%{version}-%{release}-filelist
+%defattr(-,root,root)
+
+%preun
+
+%postun
+
+%changelog
+* Tue Feb  7 2012 Davide <davidep@davidep1.nethesis.it> - 2.3.0-2.nh
+- Increased nethserver-base version requirement to 6.0.0
+
+* Tue Oct 04 2011 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 2.3.0-1.nh
+- Huge cleanup
+- Add parameters to yum events
+
+* Fri Jul 22 2011 Davide <davide.principi@nethesis.it> - 2.2.0-18.nh
+- Fixed smeserver-yum `obsoletes` tag
+
+* Wed Jul 22 2011  <davide.principi@nethesis.it> - 2.2.0-17.5.nh
+- Forked nethserver-yum package
+- Fixed yum-plugin-fastestmirror, nethserver-devtools requirements
+- Added "perl_vendorlib" macro
+
