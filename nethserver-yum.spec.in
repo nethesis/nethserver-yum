@@ -29,6 +29,8 @@ perl createlinks
 %{genfilelist} \
     --file '/sbin/e-smith/event_queue' 'attr(0555,root,root)'  \
     $RPM_BUILD_ROOT > %{name}-%{version}-%{release}-filelist
+echo "%doc COPYING"          >> %{name}-%{version}-%{release}-filelist
+
 
 %files -f %{name}-%{version}-%{release}-filelist
 %defattr(-,root,root)
