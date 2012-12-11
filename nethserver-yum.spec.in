@@ -37,19 +37,7 @@ perl createlinks
 
 %postun
 
+
+
 %changelog
-* Tue Feb  7 2012 Davide <davidep@davidep1.nethesis.it> - 2.3.0-2.nh
-- Increased nethserver-base version requirement to 6.0.0
-
-* Tue Oct 04 2011 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 2.3.0-1.nh
-- Huge cleanup
-- Add parameters to yum events
-
-* Fri Jul 22 2011 Davide <davide.principi@nethesis.it> - 2.2.0-18.nh
-- Fixed smeserver-yum `obsoletes` tag
-
-* Wed Jul 22 2011  <davide.principi@nethesis.it> - 2.2.0-17.5.nh
-- Forked nethserver-yum package
-- Fixed yum-plugin-fastestmirror, nethserver-devtools requirements
-- Added "perl_vendorlib" macro
 
