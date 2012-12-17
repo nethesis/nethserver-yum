@@ -59,7 +59,7 @@ class StatusTracker extends \Nethgui\Controller\AbstractController
                         $process->dispose();
                     }
                 } else {
-                    $this->getLog()->notice(sprintf('%s: PackageManager process `%s` is still running..', __CLASS__, $process->getIdentifier()));
+                    NETHGUI_DEBUG && $this->getLog()->notice(sprintf('%s: PackageManager process `%s` is still running..', __CLASS__, $process->getIdentifier()));
                     $view->getCommandList()->reloadData(2000);
                 }
             }
