@@ -83,10 +83,7 @@ def main():
         yb.resolveDeps()
         yb.processTransaction(rpmDisplay=JSONDisplayCallBack())
     except Exception, e:
-        err = []
-        for l in e.value:
-           err.append("%s" % l) #avoid utf8 encoding
-        print simplejson.dumps({'exit_code': 1, 'msg': err})
+        print simplejson.dumps({'exit_code': 1, 'msg': unicode(e)})
         syslog.syslog(syslog.LOG_ERR, "Error '%s'" % e);
         sys.exit(1)
 

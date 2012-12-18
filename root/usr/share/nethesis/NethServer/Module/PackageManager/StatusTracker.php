@@ -50,8 +50,7 @@ class StatusTracker extends \Nethgui\Controller\AbstractController
                     if ($ret['exit_code'] == 0) { 
                         $view->getCommandList('/Notification')->showMessage("package_success", \Nethgui\Module\Notification\AbstractNotification::NOTIFY_SUCCESS);
                     } else {
-                        $msg = implode("<br/>", $ret['msg']); #Davide, do not look at this!!
-                        $view->getCommandList('/Notification')->showMessage($msg, \Nethgui\Module\Notification\AbstractNotification::NOTIFY_ERROR);
+                        $view->getCommandList('/Notification')->showMessage($ret['msg'], \Nethgui\Module\Notification\AbstractNotification::NOTIFY_ERROR);
                     } 
                     $this->getLog()->notice(sprintf('%s: PackageManager process `%s` exit code: %d', __CLASS__, $process->getIdentifier(), $ret['exit_code']));
                     $this->done = TRUE;
