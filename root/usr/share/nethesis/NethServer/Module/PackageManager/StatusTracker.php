@@ -48,7 +48,7 @@ class StatusTracker extends \Nethgui\Controller\AbstractController
                     //    exit_code => program exit code
                     //    msg => error description if exit_code = 1
                     if ($ret['exit_code'] == 0) { 
-                        $view->getCommandList('/Notification')->showMessage("package_success", \Nethgui\Module\Notification\AbstractNotification::NOTIFY_SUCCESS);
+                        $view->getCommandList('/Notification')->showMessage($view->translate("package_success"), \Nethgui\Module\Notification\AbstractNotification::NOTIFY_SUCCESS);
                     } else {
                         $view->getCommandList('/Notification')->showMessage($ret['msg'], \Nethgui\Module\Notification\AbstractNotification::NOTIFY_ERROR);
                     } 
