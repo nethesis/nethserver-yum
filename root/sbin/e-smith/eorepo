@@ -33,7 +33,7 @@ import string
 import syslog
 
 def usage():
-    print "Usage: %s repo1[,repo2,repo3]\n";
+    print "Usage: %s repo1 [repo2] ... \n";
     sys.exit(1);
 
 def disable_repo(enabled_repos,yumbase):
