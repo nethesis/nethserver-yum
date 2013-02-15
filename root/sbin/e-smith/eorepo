@@ -5,7 +5,7 @@
 #    eorepo [-v] repo1,repo2,repo3 
 
 #
-# Copyright (C) 2012 Nethesis S.r.l.
+# Copyright (C) 2013 Nethesis S.r.l.
 # http://www.nethesis.it - support@nethesis.it
 # 
 # This script is part of NethServer.
@@ -33,7 +33,8 @@ import string
 import syslog
 
 def usage():
-    print "Usage: %s repo1 [repo2] ... \n";
+    print "eorepo -- Enable Only Repository\n";
+    print "          Usage: %s repo1 [repo2] ... \n" % sys.argv[0];
     sys.exit(1);
 
 def disable_repo(enabled_repos,yumbase):
