@@ -91,8 +91,9 @@ def posttrans_hook(conduit):
     if isUninstall:
         postUpgrade()
 
-    if os.path.isdir("/etc/e-smith/events/firewall-adjust"):
-        os.spawnl(os.P_WAIT, signal_event, signal_event, "firewall-adjust")
-    if os.path.isdir("/etc/e-smith/events/runlevel-adjust"):
-        os.spawnl(os.P_WAIT, signal_event, signal_event, "runlevel-adjust")
+    if len(installed) > 0:
+        if os.path.isdir("/etc/e-smith/events/firewall-adjust"):
+            os.spawnl(os.P_WAIT, signal_event, signal_event, "firewall-adjust")
+        if os.path.isdir("/etc/e-smith/events/runlevel-adjust"):
+            os.spawnl(os.P_WAIT, signal_event, signal_event, "runlevel-adjust")
 
