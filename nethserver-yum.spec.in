@@ -42,6 +42,9 @@ echo "%doc COPYING"          >> %{name}-%{version}-%{release}-filelist
 
 
 %changelog
+* Tue May  7 2013 Davide Principi <davide.principi@nethesis.it> - 1.0.4-1.ns6
+- Ensure package list is sorted respecting RPM dependencies #1870
+
 * Thu May 02 2013 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.0.3-1.ns6
 - Execute firewall-adjust and runlevel-adjust only on a nethserver package installation
 
