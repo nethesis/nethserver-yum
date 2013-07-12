@@ -25,6 +25,7 @@ import os
 import sys
 import simplejson
 import syslog
+import getopt
 
 class JSONDisplayCallBack(yum.rpmtrans.RPMBaseCallback):
     def __init__(self):
@@ -51,15 +52,25 @@ class JSONDisplayCallBack(yum.rpmtrans.RPMBaseCallback):
             print msgs,
 
 def usage():
-    print "Usage: %s <command> [pkg] [@grp]" % sys.argv[0]
-    print "    command: install|update|remove"
+    print "Usage: %s {<command> {PACKAGE|@GROUP}}..." % sys.argv[0]
+    print "    command: [--install|--update|--remove]"
     sys.exit(1)
 
 def main():
-    if len(sys.argv) < 3:
+
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], '', ['install=','update=','remove='])
+    except getopt.GetoptError as err:
         usage()
-    if sys.argv[1] != "install" and sys.argv[1] != "update" and sys.argv[1] != "remove":
+
+    if(len(args) > 0 or len(opts) == 0):
         usage()
+            
+    actions = {'install': [], 'update': [], 'remove': []}
+
+    for key, val in opts:
+        map(lambda x: actions[key[2:]].append(x), val.split(','))
+
     try:
         syslog.openlog('pkgaction',syslog.LOG_PID);
         ypbc = yum._YumPreBaseConf()
@@ -67,19 +78,12 @@ def main():
         ypbc.errorlevel = -1
         yb = yum.YumBase()
         yb.preconf = ypbc
-        action = sys.argv[1]
-        if action == "install":
-            for pkg in sys.argv[2:]: 
-                syslog.syslog("Installing %s" % pkg);
-                yb.install(pattern=pkg)
-        elif action == "update":
-            for pkg in sys.argv[2:]: 
-                syslog.syslog("Updating %s" % pkg);
-                yb.update(pattern=pkg)
-        elif action == "remove":
-            for pkg in sys.argv[2:]: 
-                syslog.syslog("Removing %s" % pkg);
-                yb.remove(pattern=pkg)
+
+        for action in ['remove', 'update', 'install']:
+            syslog.syslog("%s: %s" % (action, ', '.join(actions[action])))
+            for pkg in actions[action]:
+                getattr(yb, action)(pattern=pkg)
+
         yb.resolveDeps()
         yb.processTransaction(rpmDisplay=JSONDisplayCallBack())
     except Exception, e:
