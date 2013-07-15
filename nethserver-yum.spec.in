@@ -42,6 +42,10 @@ echo "%doc COPYING"          >> %{name}-%{version}-%{release}-filelist
 
 
 %changelog
+* Mon Jul 15 2013 Davide Principi <davide.principi@nethesis.it> - 1.1.0-1.ns6
+- pkgaction: support multiple install, remove, update commands. - Enhancement #1748 [NethServer]
+- Base: new PackageManager UI module - Feature #1767 [NethServer]
+
 * Tue May  7 2013 Davide Principi <davide.principi@nethesis.it> - 1.0.4-1.ns6
 - Ensure package list is sorted respecting RPM dependencies #1870
 
