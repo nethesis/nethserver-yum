@@ -42,6 +42,9 @@ echo "%doc COPYING"          >> %{name}-%{version}-%{release}-filelist
 
 
 %changelog
+* Thu Jul 25 2013 Davide Principi <davide.principi@nethesis.it> - 1.1.1-1.ns6
+- /etc/sudoers template moved to nethserver-base project - Feature #1767 [NethServer]
+
 * Mon Jul 15 2013 Davide Principi <davide.principi@nethesis.it> - 1.1.0-1.ns6
 - pkgaction: support multiple install, remove, update commands. - Enhancement #1748 [NethServer]
 - Base: new PackageManager UI module - Feature #1767 [NethServer]
