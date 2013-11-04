@@ -9,12 +9,12 @@ URL: %{url_prefix}/%{name}
 
 Requires: yum
 Requires: python, python-simplejson
+Requires: nethserver-lib
 
 BuildRequires: nethserver-devtools
 
-
 %description
-yum-based package manager for NethServer
+Yum plugin for NethServer package management
 
 %prep
 %setup
@@ -34,11 +34,6 @@ echo "%doc COPYING"          >> %{name}-%{version}-%{release}-filelist
 
 %files -f %{name}-%{version}-%{release}-filelist
 %defattr(-,root,root)
-
-%preun
-
-%postun
-
 
 
 %changelog
