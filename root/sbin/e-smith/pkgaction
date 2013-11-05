@@ -23,33 +23,48 @@
 import yum
 import os
 import sys
-import simplejson
+import json
 import syslog
 import getopt
+import nethserver.ptrack
 
-class JSONDisplayCallBack(yum.rpmtrans.RPMBaseCallback):
-    def __init__(self):
+class TrackerClientCallBack(yum.rpmtrans.RPMBaseCallback):
+    def __init__(self, client, task_id):
         yum.rpmtrans.RPMBaseCallback.__init__(self)
-        self.lastmsg = None
-        self.lastpackage = None # name of last package we looked at
+        if(not isinstance(client, nethserver.ptrack.TrackerClient)):
+            raise Exception("Invalid nethserver.ptrack.TrackerClient instance")
+        self.client = client
+        self.task_id = task_id
+
+    def _get_action_name(self, action):
+        if action in yum.TS_INSTALL_STATES:
+            return 'Installing'
+        elif action in yum.TS_REMOVE_STATES:
+            return 'Removing'
+        else:
+            return ''
 
     def event(self, package, action, te_current, te_total, ts_current, ts_total):
-        msg = {
-           "package" : "%s" % package,
-           "action" : action,
-           "te_current" : te_current,
-           "te_total" : te_total,
-           "ts_current" : ts_current,
-           "ts_total" : ts_total,
-        }
-        if msg != self.lastmsg:
-            print simplejson.dumps (msg)
-        self.lastmsg = msg
-        self.lastpackage = package
+        p = (te_current/float(te_total)) * (ts_current/float(ts_total))
+        message = "%s %s" % (package, self._get_action_name(action))
+        self.client.set_task_progress(self.task_id, p, message)
 
     def scriptout(self, package, msgs):
-        if msgs:
-            print msgs,
+        #print 'scriptout ' + json.dumps(["%s" % package, msgs])
+        return yum.rpmtrans.RPMBaseCallback.scriptout(self, package, msgs)
+
+    def errorlog(self, msg):
+        #print 'errorlog ' + json.dumps([msg])
+        return yum.rpmtrans.RPMBaseCallback.errorlog(self, msg)
+
+    def filelog(self, package, action):
+        #print 'filelog ' + json.dumps(["%s" % package, action])
+        return yum.rpmtrans.RPMBaseCallback.filelog(self, package, action)
+
+    def verify_txmbr(self, base, txmbr, count):
+        #print 'verify_txmbr ' + json.dumps(["%s" % base, "%s" % txmbr, count])
+        return yum.rpmtrans.RPMBaseCallback.verify_txmbr(self, base, txmbr, count)
+
 
 def usage():
     print "Usage: %s {<command> {PACKAGE|@GROUP}}..." % sys.argv[0]
@@ -67,11 +82,18 @@ def main():
         usage()
             
     actions = {'install': [], 'update': [], 'remove': []}
+    tracker_client = None
 
     for key, val in opts:
         map(lambda x: actions[key[2:]].append(x), val.split(','))
 
     try:
+        tracker_client = nethserver.ptrack.TrackerClient()
+        task_yum_id = tracker_client.declare_task("RPM transaction")
+        task_sys_id = tracker_client.declare_task("System configuration")
+        os.environ["PTRACK_TASKID"] = str(task_sys_id)
+        cb = TrackerClientCallBack(tracker_client, task_yum_id)
+
         syslog.openlog('pkgaction',syslog.LOG_PID);
         ypbc = yum._YumPreBaseConf()
         ypbc.debuglevel = -1
@@ -85,13 +107,14 @@ def main():
                 getattr(yb, action)(pattern=pkg)
 
         yb.resolveDeps()
-        yb.processTransaction(rpmDisplay=JSONDisplayCallBack())
+        yb.processTransaction(rpmDisplay=cb)        
+        tracker_client.set_task_done(task_yum_id)
+        tracker_client.set_task_done(task_sys_id)
+
     except Exception, e:
-        print simplejson.dumps({'exit_code': 1, 'msg': unicode(e)})
         syslog.syslog(syslog.LOG_ERR, "Error '%s'" % e);
         sys.exit(1)
 
-    print simplejson.dumps({'exit_code': 0, 'msg':'' })
     sys.exit(0);
 
 if __name__ == "__main__":

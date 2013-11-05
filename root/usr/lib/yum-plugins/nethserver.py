@@ -18,11 +18,12 @@
 # along with NethServer.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from subprocess import call
 from yum.plugins import TYPE_CORE
 import os.path
 import os
 import rpm
+import syslog
+import nethserver.ptrack
 
 requires_api_version = '2.1'
 plugin_type = (TYPE_CORE,)
@@ -37,7 +38,7 @@ def read_package_list():
     are parsed.
     """
 
-    list = []
+    packages = []
     ts = rpm.TransactionSet()
     mi = ts.dbMatch()
     for h in mi:
@@ -50,45 +51,33 @@ def read_package_list():
 
             try:
                 # insert deps before the package name
-                list.insert(list.index(h['name']), dep)
+                packages.insert(packages.index(h['name']), dep)
             except ValueError:
-                list.append(dep)
+                packages.append(dep)
 
-        if not h['name'] in list:
-            list.append(h['name'])
+        if not h['name'] in packages:
+            packages.append(h['name'])
 
-    # Reduce the given list preserving the element order
+    # Reduce the package list preserving the element order:
+    return list_unique(packages)
+
+def list_unique(l):
     s = set()
-    return filter(lambda x: x not in s and not s.add(x) , list) 
+    return filter(lambda x: x not in s and not s.add(x) , l) 
 
-
-def reconfigure_all_packages():
-    """Signal *-update event for any nethserver* package"""
-
-    for p in read_package_list():
-        event = "%s-update" % p
-        if os.path.isdir('/etc/e-smith/events/%s' % event):
-            os.spawnl(os.P_WAIT, signal_event, signal_event, event)
-
-
-def adjust_all_services():
-    """Signal firewall-adjust and runlevel-adjust system events"""
-
-    if os.path.isdir(events_dir + "/firewall-adjust"):
-        os.spawnl(os.P_WAIT, signal_event, signal_event, "firewall-adjust")
-    if os.path.isdir(events_dir + "/runlevel-adjust"):
-        os.spawnl(os.P_WAIT, signal_event, signal_event, "runlevel-adjust")
-
-
+def filter_update_events(packages):
+    return filter(lambda e: os.path.isdir(events_dir + "/" + e), map(lambda p: "%s-update" % p, packages))
 
 def posttrans_hook(conduit):
     """ The yum post-RPM-transaction hook """
 
     installed = []
     erased = []
+    events = []
+    nethserver_packages = read_package_list()
 
     if conduit.confBool("main", "verbose", default=0): #if verbose
-        conduit.info(2, "Executing NethServer queue")
+        conduit.info(2, "Signaling NethServer update events")
 
     ts = conduit.getTsInfo()
 
@@ -99,19 +88,39 @@ def posttrans_hook(conduit):
             elif tsmem.ts_state == 'e':
                 erased.append(tsmem.name)
 
-    # Get the list of installed/update packages respecting the
-    # dependency sorting:
-    installed = filter(lambda x: x in installed, read_package_list())
-    
-    for ipkg in installed:
-        event = "%s-update" % ipkg
-        if os.path.isdir(events_dir + "/%s" % event):
-            if conduit.confBool("main", "verbose", default=0): #if verbose
-                conduit.info(2, "Executing signal-event %s" % event)
-            os.spawnl(os.P_WAIT, signal_event, signal_event, event)
+    if len(installed) > 0:
+        # Get the list of installed/update packages respecting the
+        # dependency sorting:
+        installed = filter(lambda x: x in installed, nethserver_packages)
+        events.extend(filter_update_events(installed))
 
     if len(erased) > 0:
-        reconfigure_all_packages()
+        # If a nethserver package was removed add ALL remaining
+        # nethserver packages to the event list:
+        events.extend(filter_update_events(nethserver_packages))
 
-    if len(installed) > 0 or len(erased) > 0:
-        adjust_all_services()
+    if len(events) > 0:
+        # Adjust firewall and services if something was updated:
+        if os.path.isdir(events_dir + "/firewall-adjust"):
+            events.append('firewall-adjust')
+        if os.path.isdir(events_dir + "/runlevel-adjust"):
+            events.append('runlevel-adjust')
+
+    # Remove duplicate events, preserving order:
+    events = list_unique(events)
+
+    tasks = {}
+    penv = os.environ.copy()
+    tracker = nethserver.ptrack.TrackerClient()
+
+    for event in events:
+        tasks[event] = tracker.declare_task("Event %s" % event)
+
+    # Execute the event list:
+    for event in events:
+        if(event in tasks):
+            penv['PTRACK_TASKID'] = str(tasks[event])
+        elif('PTRACK_TASKID' in penv):
+            del penv['PTRACK_TASKID']
+        event_exit_code = os.spawnle(os.P_WAIT, signal_event, signal_event, event, penv)
+        tracker.set_task_done(tasks[event], "", event_exit_code)
