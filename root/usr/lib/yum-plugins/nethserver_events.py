@@ -106,12 +106,17 @@ def posttrans_hook(conduit):
         if os.path.isdir(events_dir + "/runlevel-adjust"):
             events.append('runlevel-adjust')
 
+    run_events(events)
+
+
+def run_events(events):
     # Remove duplicate events, preserving order:
     events = list_unique(events)
 
     tasks = {}
     penv = os.environ.copy()
     tracker = nethserver.ptrack.TrackerClient()
+    success = True
 
     for event in events:
         tasks[event] = tracker.declare_task("Event %s" % event)
@@ -124,3 +129,7 @@ def posttrans_hook(conduit):
             del penv['PTRACK_TASKID']
         event_exit_code = os.spawnle(os.P_WAIT, signal_event, signal_event, event, penv)
         tracker.set_task_done(tasks[event], "", event_exit_code)
+        if(event_exit_code != 0):
+            success = False
+
+    return success
