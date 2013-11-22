@@ -45,7 +45,10 @@ class TrackerClientCallBack(yum.rpmtrans.RPMBaseCallback):
             return ''
 
     def event(self, package, action, te_current, te_total, ts_current, ts_total):
-        p = (te_current/float(te_total)) * (ts_current/float(ts_total))
+        # Element progress
+        c = float(te_current) / float(te_total)
+        # Transaction progress
+        p = min(1.0, (float(ts_current) - 1.0 + c) / float(ts_total))
         message = "%s %s" % (package, self._get_action_name(action))
         self.client.set_task_progress(self.task_id, p, message)
 
@@ -89,8 +92,9 @@ def main():
 
     try:
         tracker_client = nethserver.ptrack.TrackerClient()
-        task_yum_id = tracker_client.declare_task("RPM transaction")
-        task_sys_id = tracker_client.declare_task("System configuration")
+        task_dep_id = tracker_client.declare_task("Initialization", 0, 0.1)
+        task_yum_id = tracker_client.declare_task("RPM transaction", 0, 0.45)
+        task_sys_id = tracker_client.declare_task("System configuration", 0, 0.45)
         os.environ["PTRACK_TASKID"] = str(task_sys_id)
         cb = TrackerClientCallBack(tracker_client, task_yum_id)
 
@@ -106,7 +110,10 @@ def main():
             for pkg in actions[action]:
                 getattr(yb, action)(pattern=pkg)
 
+        tracker_client.set_task_progress(task_dep_id, 0.3, 'Resolving RPM dependencies')
         yb.resolveDeps()
+        tracker_client.set_task_done(task_dep_id)
+
         yb.processTransaction(rpmDisplay=cb)        
         tracker_client.set_task_done(task_yum_id)
         tracker_client.set_task_done(task_sys_id)
