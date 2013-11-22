@@ -92,9 +92,10 @@ def main():
 
     try:
         tracker_client = nethserver.ptrack.TrackerClient()
-        task_dep_id = tracker_client.declare_task("Initialization", 0, 0.1)
-        task_yum_id = tracker_client.declare_task("RPM transaction", 0, 0.45)
-        task_sys_id = tracker_client.declare_task("System configuration", 0, 0.45)
+        task_dep_id = tracker_client.declare_task("Initialization", 0, 2.0)
+        task_sys_id = tracker_client.declare_task("System configuration", 0, 50.0)
+        task_yum_id = tracker_client.declare_task("RPM transaction", 0, 50.0)
+
         os.environ["PTRACK_TASKID"] = str(task_sys_id)
         cb = TrackerClientCallBack(tracker_client, task_yum_id)
 

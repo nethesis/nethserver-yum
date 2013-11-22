@@ -31,6 +31,33 @@ plugin_type = (TYPE_CORE,)
 signal_event = '/sbin/e-smith/signal-event'
 events_dir = '/etc/e-smith/events'
 
+def has_update_event(x):
+    """
+    Determine if the given x has a corresponding e-smith *-update event
+    x can be either a package name (string) or an rpm.hdr object
+    """
+    if(isinstance(x, rpm.hdr)):
+        o = x
+        n = x['name']
+    elif(isinstance(x, str)):
+        n = x
+        o = None
+    else:
+        raise Exception("invalid object")
+
+    if n not in has_update_event.cache:
+        if o is None:
+            try:
+                o = rpm.TransactionSet().dbMatch('name', n).next()
+            except StopIteration:
+                o = {'FILENAMES': []}
+        has_update_event.cache[n] = '%s/%s%s' % (events_dir, n, '-update') in o['FILENAMES']
+
+    return has_update_event.cache[n]
+
+
+has_update_event.cache = {}
+
 def read_package_list():
     """
     Query RPM db for any nethserver* package and return the list of
@@ -42,11 +69,11 @@ def read_package_list():
     ts = rpm.TransactionSet()
     mi = ts.dbMatch()
     for h in mi:
-        if not h['name'].startswith('nethserver'): 
+        if not has_update_event(h['name']):
             continue
 
         for dep in h[rpm.RPMTAG_REQUIRENAME]:
-            if not dep.startswith('nethserver'): 
+            if not has_update_event(dep):
                 continue
 
             try:
