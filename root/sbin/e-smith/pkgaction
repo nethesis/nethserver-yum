@@ -20,6 +20,7 @@
 # along with NethServer.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+from __future__ import division
 import yum
 import os
 import sys
@@ -27,6 +28,27 @@ import json
 import syslog
 import getopt
 import nethserver.ptrack
+from yum.callbacks import DownloadBaseCallback
+
+class DownloadCallback(  DownloadBaseCallback ):
+    def setOptions(self, npackages, client, task_id):
+        if(not isinstance(client, nethserver.ptrack.TrackerClient)):
+            raise Exception("Invalid nethserver.ptrack.TrackerClient instance")
+        self.client = client
+        self.task_id = task_id
+        self.npackages = npackages
+        self.curpackages = 0
+        self.last_package = ''
+        self.progress = 0
+
+    def updateProgress(self,name,frac,fread,ftime):
+        if name != self.last_package:
+            self.curpackages = self.curpackages + 1
+            self.progress = self.curpackages / self.npackages
+            self.last_package = name
+        message = "Downloading %s" % name
+        self.client.set_task_progress(self.task_id, self.progress, name)
+
 
 class TrackerClientCallBack(yum.rpmtrans.RPMBaseCallback):
     def __init__(self, client, task_id):
@@ -93,6 +115,7 @@ def main():
     try:
         tracker_client = nethserver.ptrack.TrackerClient()
         task_dep_id = tracker_client.declare_task("Initialization", 0, 2.0)
+        task_dwn_id = tracker_client.declare_task("Download", 0, 50.0)
         task_sys_id = tracker_client.declare_task("System configuration", 0, 50.0)
         task_yum_id = tracker_client.declare_task("RPM transaction", 0, 50.0)
 
@@ -105,6 +128,7 @@ def main():
         ypbc.errorlevel = -1
         yb = yum.YumBase()
         yb.preconf = ypbc
+        dnlcb = DownloadCallback()
 
         for action in ['remove', 'update', 'install']:
             syslog.syslog("%s: %s" % (action, ', '.join(actions[action])))
@@ -113,6 +137,16 @@ def main():
 
         tracker_client.set_task_progress(task_dep_id, 0.3, 'Resolving RPM dependencies')
         yb.resolveDeps()
+
+        # extract list of install or update packages from yum transaction info
+        pkgs = map(lambda x: x.name, filter(lambda txmbr:
+                                            txmbr.ts_state in ("i", "u"),
+                                            yb.tsInfo.getMembers()))
+        # initialize data for progress bar callback
+        dnlcb.setOptions( len(pkgs), tracker_client, task_dwn_id )
+
+        # set progress bar callback
+        yb.repos.setProgressBar( dnlcb )
         tracker_client.set_task_done(task_dep_id)
 
         yb.processTransaction(rpmDisplay=cb)        
