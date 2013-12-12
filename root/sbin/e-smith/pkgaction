@@ -24,11 +24,11 @@ from __future__ import division
 import yum
 import os
 import sys
-import json
 import syslog
 import getopt
 import nethserver.ptrack
 import yum.callbacks
+import yum.Errors
 
 class TransactionCallback( yum.callbacks.ProcessTransNoOutputCallback ):
     def __init__(self, repos, tracker_client, parent_task_id):
@@ -144,9 +144,18 @@ def main():
         tracker_client.set_task_done(task_sys_id)
         tracker_client.set_task_done(task_chn_id)
 
-
     except Exception, e:
-        syslog.syslog(syslog.LOG_ERR, "Error '%s'" % e);
+
+        if isinstance(e, yum.Errors.YumBaseError) \
+           and hasattr(e, 'value') \
+           and isinstance(e.value, list):
+            message = "\n".join(e.value)
+        else:
+            message = "%s" % e
+
+        tracker_client.set_task_done(0, message, 1)
+        print message
+        syslog.syslog(syslog.LOG_ERR, "[%s] %s" % (e.__class__.__name__, e))
         sys.exit(1)
 
     sys.exit(0);
