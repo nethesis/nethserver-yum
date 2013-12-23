@@ -92,8 +92,12 @@ def list_unique(l):
     s = set()
     return filter(lambda x: x not in s and not s.add(x) , l) 
 
+# Deprecated method (used by system-adjust action)
 def filter_update_events(packages):
-    return filter(lambda e: os.path.isdir(events_dir + "/" + e), map(lambda p: "%s-update" % p, packages))
+    return pkgs2events(packages)
+
+def pkgs2events(packages):
+    return map(lambda p: "%s-update" % p, packages)
 
 def posttrans_hook(conduit):
     """ The yum post-RPM-transaction hook """
@@ -109,22 +113,19 @@ def posttrans_hook(conduit):
     ts = conduit.getTsInfo()
 
     for tsmem in ts.getMembers():
-        if tsmem.name.startswith('nethserver'):
-            if tsmem.ts_state == 'i' or tsmem.ts_state == 'u':
-                installed.append(tsmem.name)
-            elif tsmem.ts_state == 'e':
-                erased.append(tsmem.name)
+        if tsmem.ts_state == 'i' or tsmem.ts_state == 'u':
+            installed.append(tsmem.name)
+        elif tsmem.ts_state == 'e':
+            erased.append(tsmem.name)
 
-    if len(installed) > 0:
-        # Get the list of installed/update packages respecting the
+    if len(filter(lambda x: x in erased, nethserver_packages)) > 0:
+        # If a nethserver package was removed add ALL nethserver
+        # packages to the event list:
+        events.extend(pkgs2events(nethserver_packages))
+    elif len(installed) > 0:
+        # Get the list of installed/updated packages respecting the
         # dependency sorting:
-        installed = filter(lambda x: x in installed, nethserver_packages)
-        events.extend(filter_update_events(installed))
-
-    if len(erased) > 0:
-        # If a nethserver package was removed add ALL remaining
-        # nethserver packages to the event list:
-        events.extend(filter_update_events(nethserver_packages))
+        events.extend(pkgs2events(filter(lambda x: x in installed, nethserver_packages)))
 
     if len(events) > 0:
         # Adjust firewall and services if something was updated:
