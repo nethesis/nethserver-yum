@@ -43,7 +43,7 @@ def has_update_event(x):
         n = x
         o = None
     else:
-        raise Exception("invalid object")
+        raise Exception("invalid object type %s" % str(x.__class__))
 
     if n not in has_update_event.cache:
         if o is None:
@@ -103,8 +103,9 @@ def posttrans_hook(conduit):
     """ The yum post-RPM-transaction hook """
 
     installed = []
-    erased = []
+    trigger_uninstall = False
     events = []
+    # NethServer packages are those with *-update event defined:
     nethserver_packages = read_package_list()
 
     if conduit.confBool("main", "verbose", default=0): #if verbose
@@ -115,17 +116,19 @@ def posttrans_hook(conduit):
     for tsmem in ts.getMembers():
         if tsmem.ts_state == 'i' or tsmem.ts_state == 'u':
             installed.append(tsmem.name)
-        elif tsmem.ts_state == 'e':
-            erased.append(tsmem.name)
+        elif tsmem.ts_state == 'e' \
+             and not trigger_uninstall \
+             and has_update_event(tsmem.po.hdr):
+            trigger_uninstall = True
 
-    if len(filter(lambda x: x in erased, nethserver_packages)) > 0:
-        # If a nethserver package was removed add ALL nethserver
-        # packages to the event list:
-        events.extend(pkgs2events(nethserver_packages))
+    if trigger_uninstall:
+        # If a NethServer package was removed add ALL remaining
+        # NethServer packages to the event list:
+        events = pkgs2events(nethserver_packages)
     elif len(installed) > 0:
         # Get the list of installed/updated packages respecting the
         # dependency sorting:
-        events.extend(pkgs2events(filter(lambda x: x in installed, nethserver_packages)))
+        events = pkgs2events(filter(lambda x: x in installed, nethserver_packages))
 
     if len(events) > 0:
         # Adjust firewall and services if something was updated:
