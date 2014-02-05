@@ -37,6 +37,9 @@ echo "%doc COPYING"          >> %{name}-%{version}-%{release}-filelist
 
 
 %changelog
+* Wed Feb 05 2014 Davide Principi <davide.principi@nethesis.it> - 1.3.0-1.ns6
+- Free package names for nethserver_events yum plugin - Enhancement #2546 [NethServer]
+
 * Wed Dec 18 2013 Davide Principi <davide.principi@nethesis.it> - 1.2.0-1.ns6
 - Process tracking and notifications - Feature #2029 [NethServer]
 
