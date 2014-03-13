@@ -24,7 +24,7 @@ import yum
 import os
 import sys
 import simplejson
-
+import yum.misc
 
 def usage():
     print "Usage: %s <command> [name]" % sys.argv[0]
@@ -68,15 +68,13 @@ def grouplist(yb):
     groups = {}
     groups["installed"] = []
     groups["available"] = []
-    for g in  yb.comps.return_groups("*"):
+    for g in yb.comps.get_groups():
         if not g.user_visible:
             continue
         tmp = {
             'id' : g.groupid,
-            'name' : g.name,
-            'description' : g.description,
-            'translated_name' : g.translated_name,
-            'translated_description': g.translated_description,
+            'name' : g.ui_name,
+            'description' : g.ui_description,
             'mandatory_packages': g.mandatory_packages.keys(),
             'optional_packages': g.optional_packages.keys(),
             'default_packages' : g.default_packages.keys(),
@@ -98,6 +96,8 @@ def main():
         usage()
 
     try:
+        yum.misc.setup_locale()
+
         ypbc = yum._YumPreBaseConf()
         ypbc.debuglevel = 0
         ypbc.errorlevel = 0
