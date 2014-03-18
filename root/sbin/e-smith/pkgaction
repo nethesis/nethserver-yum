@@ -113,8 +113,12 @@ def main():
     for key, val in opts:
         map(lambda x: actions[key[2:]].append(x), val.split(','))
 
+
+    syslog.openlog('pkgaction',syslog.LOG_PID);
+    tracker_client = nethserver.ptrack.TrackerClient()
+
     try:
-        syslog.openlog('pkgaction',syslog.LOG_PID);
+
         ypbc = yum._YumPreBaseConf()
         ypbc.debuglevel = -1
         ypbc.errorlevel = -1
@@ -126,7 +130,6 @@ def main():
             for pkg in actions[action]:
                 getattr(yb, action)(pattern=pkg)
 
-        tracker_client = nethserver.ptrack.TrackerClient()
         task_dep_id = tracker_client.declare_task("Initialization", 0, 4.0)
         task_chn_id = tracker_client.declare_task("Applying changes", 0, 96.0)
         task_sys_id = tracker_client.declare_task("System configuration", task_chn_id, 50.0)
