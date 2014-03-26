@@ -125,15 +125,17 @@ def main():
         yb = yum.YumBase()
         yb.preconf = ypbc
 
-        for action in ['remove', 'update', 'install']:
-            syslog.syslog("%s: %s" % (action, ', '.join(actions[action])))
-            for pkg in actions[action]:
-                getattr(yb, action)(pattern=pkg)
-
         task_dep_id = tracker_client.declare_task("Initialization", 0, 4.0)
         task_chn_id = tracker_client.declare_task("Applying changes", 0, 96.0)
         task_sys_id = tracker_client.declare_task("System configuration", task_chn_id, 50.0)
         os.environ["PTRACK_TASKID"] = str(task_sys_id)
+
+        tracker_client.set_task_progress(task_dep_id, 0.01)
+
+        for action in ['remove', 'update', 'install']:
+            syslog.syslog("%s: %s" % (action, ', '.join(actions[action])))
+            for pkg in actions[action]:
+                getattr(yb, action)(pattern=pkg)
 
         tracker_client.set_task_progress(task_dep_id, 0.5, 'Resolving RPM dependencies')
         yb.resolveDeps()
