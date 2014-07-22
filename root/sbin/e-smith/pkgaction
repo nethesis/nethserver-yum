@@ -21,6 +21,7 @@
 #
 
 from __future__ import division
+from __future__ import print_function
 import yum
 import os
 import sys
@@ -29,6 +30,9 @@ import getopt
 import nethserver.ptrack
 import yum.callbacks
 import yum.Errors
+
+def warning(*objs):
+    print(*objs, file=sys.stderr)
 
 class TransactionCallback( yum.callbacks.ProcessTransNoOutputCallback ):
     def __init__(self, repos, tracker_client, parent_task_id):
@@ -93,8 +97,8 @@ class TrackerClientCallBack(yum.rpmtrans.RPMBaseCallback):
         self.tracker_client.set_task_progress(self.task_id, p, message)
 
 def usage():
-    print "Usage: %s {<command> {PACKAGE|@GROUP}}..." % sys.argv[0]
-    print "    command: [--install|--update|--remove]"
+    warning("Usage: %s {<command> {PACKAGE|@GROUP}}..." % sys.argv[0])
+    warning("    command: [--install|--update|--remove]")
     sys.exit(1)
 
 def main():
@@ -159,7 +163,7 @@ def main():
             message = "%s" % e
 
         tracker_client.set_task_done(0, message, 1)
-        print message
+        warning(message)
         syslog.syslog(syslog.LOG_ERR, "[%s] %s" % (e.__class__.__name__, e))
         sys.exit(1)
 
