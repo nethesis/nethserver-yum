@@ -30,6 +30,7 @@ import getopt
 import nethserver.ptrack
 import yum.callbacks
 import yum.Errors
+import yum.i18n # exception2msg
 
 def warning(*objs):
     print(*objs, file=sys.stderr)
@@ -113,13 +114,15 @@ def main():
             
     actions = {'install': [], 'update': [], 'remove': []}
     tracker_client = None
+    exitcode = 0
 
     for key, val in opts:
         map(lambda x: actions[key[2:]].append(x), val.split(','))
 
-
     syslog.openlog('pkgaction',syslog.LOG_PID);
     tracker_client = nethserver.ptrack.TrackerClient()
+
+    current_task_id = 0
 
     try:
 
@@ -134,6 +137,8 @@ def main():
         task_sys_id = tracker_client.declare_task("System configuration", task_chn_id, 50.0)
         os.environ["PTRACK_TASKID"] = str(task_sys_id)
 
+        current_task_id = task_dep_id
+
         tracker_client.set_task_progress(task_dep_id, 0.01)
 
         for action in ['remove', 'update', 'install']:
@@ -145,29 +150,39 @@ def main():
         yb.resolveDeps()
         tracker_client.set_task_done(task_dep_id)
 
+        current_task_id = task_chn_id
+
         yb.processTransaction(
             callback   = TransactionCallback(yb.repos, tracker_client, task_chn_id),
             rpmDisplay = TrackerClientCallBack(tracker_client, task_chn_id)
         )
+        
+        current_task_id = task_sys_id
 
-        tracker_client.set_task_done(task_sys_id)
-        tracker_client.set_task_done(task_chn_id)
+        exitcode = 0 if getattr(yb, 'nethserver_events', True) else 2
+
+        if(exitcode == 0):
+            tracker_client.set_task_done(task_sys_id)
+            tracker_client.set_task_done(task_chn_id)
+        else:
+            # errors from events: set error state on both the parent
+            # and its child.
+            tracker_client.set_task_done(task_sys_id, '', exitcode)
+            tracker_client.set_task_done(task_chn_id, '', exitcode)
 
     except Exception, e:
+        try:
+            message = "[%s] %s" % (e.__class__.__name__, 
+                                   "\n".join(yum.i18n.exception2msg(e)))
+        except:
+            message = "[%s] %s" % (e.__class__.__name__, yum.i18n.exception2msg(e))
 
-        if isinstance(e, yum.Errors.YumBaseError) \
-           and hasattr(e, 'value') \
-           and isinstance(e.value, list):
-            message = "\n".join(e.value)
-        else:
-            message = "%s" % e
-
-        tracker_client.set_task_done(0, message, 1)
+        tracker_client.set_task_done(current_task_id, message, 1)
         warning(message)
-        syslog.syslog(syslog.LOG_ERR, "[%s] %s" % (e.__class__.__name__, e))
+        syslog.syslog(syslog.LOG_ERR, message)
         sys.exit(1)
-
-    sys.exit(0);
+    
+    sys.exit(exitcode);
 
 if __name__ == "__main__":
     main()
