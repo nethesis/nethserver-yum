@@ -22,7 +22,6 @@ from yum.plugins import TYPE_CORE
 import os.path
 import os
 import rpm
-import syslog
 import nethserver.ptrack
 
 requires_api_version = '2.1'
@@ -99,7 +98,7 @@ def filter_update_events(packages):
 def pkgs2events(packages):
     return map(lambda p: "%s-update" % p, packages)
 
-def posttrans_hook(conduit):
+def postverifytrans_hook(conduit):
     """ The yum post-RPM-transaction hook """
 
     installed = []
@@ -137,7 +136,7 @@ def posttrans_hook(conduit):
         if os.path.isdir(events_dir + "/runlevel-adjust"):
             events.append('runlevel-adjust')
 
-    run_events(events)
+    conduit._base.nethserver_events = run_events(events)
 
 
 def run_events(events):
@@ -164,3 +163,4 @@ def run_events(events):
             success = False
 
     return success
+
