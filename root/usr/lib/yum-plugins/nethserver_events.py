@@ -131,10 +131,10 @@ def postverifytrans_hook(conduit):
 
     if len(events) > 0:
         # Adjust firewall and services if something was updated:
-        if os.path.isdir(events_dir + "/firewall-adjust"):
-            events.append('firewall-adjust')
         if os.path.isdir(events_dir + "/runlevel-adjust"):
             events.append('runlevel-adjust')
+        if os.path.isdir(events_dir + "/firewall-adjust"):
+            events.append('firewall-adjust')
 
     conduit._base.nethserver_events = run_events(events)
 
