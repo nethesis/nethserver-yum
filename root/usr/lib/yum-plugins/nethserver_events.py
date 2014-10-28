@@ -64,9 +64,11 @@ def read_package_list():
     are parsed.
     """
 
-    packages = []
     ts = rpm.TransactionSet()
     mi = ts.dbMatch()
+    packages = []
+    touples = []
+
     for h in mi:
         if not has_update_event(h['name']):
             continue
@@ -74,18 +76,65 @@ def read_package_list():
         for dep in h[rpm.RPMTAG_REQUIRENAME]:
             if not has_update_event(dep):
                 continue
+            touples.append([dep,h['name']])
 
-            try:
-                # insert deps before the package name
-                packages.insert(packages.index(h['name']), dep)
-            except ValueError:
-                packages.append(dep)
+    packages = topological_sort(touples)
+    return packages
 
-        if not h['name'] in packages:
-            packages.append(h['name'])
+class GraphError(Exception):
+    pass
 
-    # Reduce the package list preserving the element order:
-    return list_unique(packages)
+def topological_sort(edges):
+    """topologically sort vertices in edges.
+    edges: list of pairs of vertices. Edges must form a DAG.
+           If the graph has a cycle, then GraphError is raised.
+    returns: topologically sorted list of vertices.
+    see http://en.wikipedia.org/wiki/Topological_sorting
+
+    thanks to https://github.com/tengu/py-tsort
+    """
+    # resulting list
+    L=[]
+
+    # maintain forward and backward edge maps in parallel.
+    st,ts={},{}
+
+    def prune(s,t):
+        del st[s][t]
+        del ts[t][s]
+
+    def add(s,t):
+        try:
+            st.setdefault(s,{})[t]=1
+        except Exception, e:
+            raise RuntimeError(e, (s,t))
+        ts.setdefault(t,{})[s]=1
+
+    for s,t in edges:
+        add(s,t)
+
+    # frontier
+    S=set(st.keys()).difference(ts.keys())
+
+    while S:
+        s=S.pop()
+        L.append(s)
+        for t in st.get(s,{}).keys():
+            prune(s,t)
+            if not ts[t]:       # new frontier
+                S.add(t)
+
+    if filter(None, st.values()): # we have a cycle. report the cycle.
+        def traverse(vs, seen):
+            for s in vs:
+                if s in seen:
+                    raise GraphError('contains cycle: ', seen)
+                seen.append(s) # xx use ordered set..
+                traverse(st[s].keys(), seen)
+        traverse(st.keys(), list())
+        assert False, 'should not reach..'
+
+    return L
 
 def list_unique(l):
     s = set()
