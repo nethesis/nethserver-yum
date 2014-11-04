@@ -73,12 +73,19 @@ def read_package_list():
         if not has_update_event(h['name']):
             continue
 
+        deps = []
+
         for dep in h[rpm.RPMTAG_REQUIRENAME]:
-            if not has_update_event(dep):
-                continue
-            touples.append([dep,h['name']])
+            if has_update_event(dep):
+                deps.append(dep)
+
+        if len(deps) == 0:
+            touples.append(['$root',h['name']])
+        else:
+            map(lambda x: touples.append([x,h['name']]), deps)
 
     packages = topological_sort(touples)
+    packages.remove('$root')
     return packages
 
 class GraphError(Exception):
