@@ -1,6 +1,6 @@
 Name: nethserver-yum
 Summary: NethServer package management
-Version: 1.3.4
+Version: 1.3.5
 Release: 1%{?dist}
 License: GPL
 Source: %{name}-%{version}.tar.gz
@@ -37,6 +37,9 @@ echo "%doc COPYING"          >> %{name}-%{version}-%{release}-filelist
 
 
 %changelog
+* Tue Mar 03 2015 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.3.5-1
+- Package Manager: new UPDATE button and optional packages selection - Feature #2963 [NethServer]
+
 * Tue Nov 11 2014 Davide Principi <davide.principi@nethesis.it> - 1.3.4-1.ns6
 - Wrong signal-event order under certain circumstance  - Enhancement #2904 [NethServer]
 
