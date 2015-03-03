@@ -1,7 +1,7 @@
 Name: nethserver-yum
 Summary: NethServer package management
-Version: @@VERSION@@
-Release: @@RELEASE@@
+Version: 1.3.4
+Release: 1%{?dist}
 License: GPL
 Source: %{name}-%{version}.tar.gz
 BuildArch: noarch
