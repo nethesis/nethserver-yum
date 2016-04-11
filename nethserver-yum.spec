@@ -33,6 +33,7 @@ echo "%doc COPYING"          >> %{name}-%{version}-%{release}-filelist
 
 
 %files -f %{name}-%{version}-%{release}-filelist
+%config(noreplace) %attr(0644,root,root) /etc/yum/pluginconf.d/nethserver_events.conf
 %defattr(-,root,root)
 
 
