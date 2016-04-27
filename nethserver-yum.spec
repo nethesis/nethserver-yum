@@ -1,6 +1,6 @@
 Name: nethserver-yum
 Summary: NethServer package management
-Version: 1.3.5
+Version: 1.3.6
 Release: 1%{?dist}
 License: GPL
 Source: %{name}-%{version}.tar.gz
@@ -38,6 +38,9 @@ echo "%doc COPYING"          >> %{name}-%{version}-%{release}-filelist
 
 
 %changelog
+* Wed Apr 27 2016 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.3.6-1
+- Mark yum plugin configuration file as config - Enhancement #3376
+
 * Tue Mar 03 2015 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.3.5-1
 - Package Manager: new UPDATE button and optional packages selection - Feature #2963 [NethServer]
 
