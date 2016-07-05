@@ -24,9 +24,3 @@ use esmith::Build::CreateLinks qw(:all);
 use File::Basename;
 use File::Path;
 
-#--------------------------------------------------------------------------------------------
-# Event that expand yum.conf template. CAUTION! This evente isn't executed at first install!!
-#--------------------------------------------------------------------------------------------
-templates2events("/etc/yum.conf","nethserver-yum-update"); 
-
-templates2events("/etc/yum.conf","proxy-update"); 
