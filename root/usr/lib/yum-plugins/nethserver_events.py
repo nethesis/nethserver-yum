@@ -173,7 +173,7 @@ def postverifytrans_hook(conduit):
             installed.append(tsmem.name)
         elif tsmem.ts_state == 'e' \
              and not trigger_uninstall \
-             and has_update_event(tsmem.po.hdr):
+             and tsmem.name.startswith("nethserver-"):
             trigger_uninstall = True
 
     if trigger_uninstall:
