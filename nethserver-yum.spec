@@ -1,6 +1,6 @@
 Name: nethserver-yum
 Summary: NethServer package management
-Version: 1.4.0
+Version: 1.4.1
 Release: 1%{?dist}
 License: GPL
 Source: %{name}-%{version}.tar.gz
@@ -38,6 +38,9 @@ echo "%doc COPYING"          >> %{name}-%{version}-%{release}-filelist
 
 
 %changelog
+* Tue Jul 12 2016 Davide Principi <davide.principi@nethesis.it> - 1.4.1-1
+- Software center: warning after removing any module -- NethServer/dev#5044
+
 * Thu Jul 07 2016 Stefano Fancello <stefano.fancello@nethesis.it> - 1.4.0-1
 - First NS7 release
 
